@@ -1,0 +1,450 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/><meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>ERAS v4.0 — Government Authority</title>
+<link rel="stylesheet" href="../css/style.css"/>
+<script src="../js/data.js"></script>
+<script src="../js/ui.js"></script>
+<style>
+.body-layout{grid-template-columns:200px 1fr 200px;}
+.rc-status{font-family:monospace;font-size:8px;font-weight:700;padding:1px 6px;border-radius:20px;display:inline-block;}
+canvas.chart{width:100%;height:130px;display:block;}
+</style>
+</head>
+<body class="role-authority">
+<div class="app">
+  <div class="hdr">
+    <div style="display:flex;align-items:center;gap:12px">
+      <div class="h-ico">🏛️</div>
+      <div><div class="h-title">ERAS v4.0 — Government Authority</div><div class="h-ver">ANALYTICS &amp; DISASTER MONITORING · TAMIL NADU · READ-ONLY</div></div>
+    </div>
+    <div class="htabs">
+      <a class="htab on" data-view="overview"  onclick="showView('overview')">📊 Overview</a>
+      <a class="htab"    data-view="districts" onclick="showView('districts')">🌍 Districts</a>
+      <a class="htab"    data-view="analytics" onclick="showView('analytics')">📈 Analytics</a>
+      <a class="htab"    data-view="disaster"  onclick="showView('disaster')">🚨 Disaster Map</a>
+    </div>
+    <div style="display:flex;align-items:center;gap:10px">
+      <div class="sync-chip"><div class="sdot"></div><span id="sync-lbl">LIVE</span></div>
+      <div class="uptime-chip">⏱ <span id="uptime">00:00:00</span></div>
+      <div class="rbadge" id="rbadge"></div>
+      <div class="uname" id="uname"></div>
+      <button class="lo-btn" onclick="location.href='../index.html'">LOGOUT</button>
+    </div>
+  </div>
+
+  <div class="body-layout">
+    <!-- SIDEBAR -->
+    <div class="sb">
+      <div class="sbl">Navigation</div>
+      <a class="sbi on" data-view="overview"  onclick="showView('overview')">📊 System Overview</a>
+      <a class="sbi"    data-view="districts" onclick="showView('districts')">🌍 All Districts</a>
+      <a class="sbi"    data-view="analytics" onclick="showView('analytics')">📈 Analytics</a>
+      <a class="sbi"    data-view="disaster"  onclick="showView('disaster')">🚨 Disaster Monitor</a>
+      <div class="sbl" style="margin-top:12px">🏛️ Authority Access</div>
+      <div style="background:var(--purple2);border:1px solid rgba(167,139,250,0.2);border-radius:8px;padding:10px;font-size:10px;color:var(--text2);line-height:1.8">
+        ✅ View all districts<br/>✅ Monitor system health<br/>✅ Analytics &amp; reports<br/>✅ Disaster dashboard<br/>❌ Create emergencies<br/>❌ Modify resources
+      </div>
+      <div class="sbl" style="margin-top:12px">📋 Quick Stats</div>
+      <div style="font-size:10px;color:var(--text2);line-height:2.2;padding:0 4px">
+        <div>🌍 Districts: <strong style="color:var(--text)">38</strong></div>
+        <div>🚑 Ambulances: <strong style="color:var(--text)" id="sb-tambu">—</strong></div>
+        <div>🏥 Hospitals: <strong style="color:var(--text)" id="sb-thousp">—</strong></div>
+        <div>🟢 Online: <strong style="color:var(--green)" id="sb-online">—</strong></div>
+        <div>🟡 Low res: <strong style="color:var(--amber)" id="sb-low">—</strong></div>
+      </div>
+    </div>
+
+    <!-- MAIN VIEWS -->
+    <div class="main">
+
+      <!-- OVERVIEW -->
+      <div class="view on" id="view-overview">
+        <div class="stats-row">
+          <div class="sc cb"><div class="sv">38</div><div class="sl">Districts</div><div class="ss">Tamil Nadu</div></div>
+          <div class="sc cg"><div class="sv" id="ov-ambu">—</div><div class="sl">Ambulances</div><div class="ss" id="ov-ambu-free">—</div></div>
+          <div class="sc cp"><div class="sv" id="ov-hosp">—</div><div class="sl">Hospitals</div><div class="ss" id="ov-beds">—</div></div>
+          <div class="sc ca"><div class="sv" id="ov-online">—</div><div class="sl">Online nodes</div><div class="ss" id="ov-failed">—</div></div>
+          <div class="sc cr"><div class="sv" id="ov-low">—</div><div class="sl">Low resource</div><div class="ss">districts</div></div>
+        </div>
+        <div class="two">
+          <div class="card">
+            <div class="ct">🌍 District Status</div>
+            <div class="mbar"><div class="mbl">🟢 Online</div><div class="mbt"><div class="mbf" id="ov-bar-on" style="width:0%;background:var(--green)"></div></div><div class="mbv" id="ov-val-on">—</div></div>
+            <div class="mbar"><div class="mbl">🟡 Low Res</div><div class="mbt"><div class="mbf" id="ov-bar-lo" style="width:0%;background:var(--amber)"></div></div><div class="mbv" id="ov-val-lo">—</div></div>
+            <div class="mbar"><div class="mbl">🔴 Failed</div><div class="mbt"><div class="mbf" id="ov-bar-fa" style="width:0%;background:var(--red)"></div></div><div class="mbv" id="ov-val-fa">0</div></div>
+          </div>
+          <div class="card">
+            <div class="ct">🚑 Ambulance Coverage</div>
+            <div class="mbar"><div class="mbl">Available</div><div class="mbt"><div class="mbf" id="ambu-bar-free" style="width:100%;background:var(--green)"></div></div><div class="mbv" id="ambu-val-free">—</div></div>
+            <div class="mbar"><div class="mbl">On duty</div><div class="mbt"><div class="mbf" id="ambu-bar-busy" style="width:0%;background:var(--red)"></div></div><div class="mbv" id="ambu-val-busy">—</div></div>
+            <div style="height:1px;background:var(--border);margin:10px 0"></div>
+            <div style="font-size:11px;color:var(--text2)">ICU utilisation: <strong id="icu-pct" style="color:var(--purple)">—</strong></div>
+            <div style="font-size:11px;color:var(--text2);margin-top:4px">Bed utilisation: <strong id="bed-pct" style="color:var(--teal)">—</strong></div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="ct">⚠️ Districts Needing Attention</div>
+          <table><thead><tr><th>District</th><th>Status</th><th>Ambulances</th><th>Beds</th><th>ICU</th><th>Risk</th></tr></thead>
+          <tbody id="crit-tb"></tbody></table>
+        </div>
+      </div>
+
+      <!-- DISTRICTS -->
+      <div class="view" id="view-districts">
+        <div style="display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap">
+          <input class="fi" style="max-width:220px;padding:6px 11px;font-size:11px" id="dist-search" placeholder="🔍 Search district…" oninput="renderDistrictTable(this.value)"/>
+          <button class="btn bg2 btn-sm" onclick="renderDistrictTable('')">All</button>
+          <button class="btn bs btn-sm" onclick="filterStatus('ONLINE')">🟢 Online</button>
+          <button class="btn bw btn-sm" onclick="filterStatus('LOW RES')">🟡 Low Res</button>
+          <button class="btn bd btn-sm" onclick="filterStatus('FAILED')">🔴 Failed</button>
+        </div>
+        <div class="card">
+          <div class="ct">🌍 All 38 Tamil Nadu Districts</div>
+          <table><thead><tr><th>#</th><th>District</th><th>Status</th><th>Ambulances</th><th>Beds</th><th>ICU</th><th>Hospitals</th><th>Risk</th></tr></thead>
+          <tbody id="all-dist-tb"></tbody></table>
+        </div>
+      </div>
+
+      <!-- ANALYTICS — pure canvas charts, no CDN -->
+      <div class="view" id="view-analytics">
+        <div class="three" style="margin-bottom:14px">
+          <div class="sc cb"><div class="sv" id="an-ambu" style="color:var(--blue)">—</div><div class="sl">Total ambulances</div></div>
+          <div class="sc cg"><div class="sv" id="an-beds" style="color:var(--green)">—</div><div class="sl">Beds available</div></div>
+          <div class="sc cp"><div class="sv" id="an-icu"  style="color:var(--purple)">—</div><div class="sl">ICU slots</div></div>
+        </div>
+        <div class="two">
+          <div class="card"><div class="ct">📊 Beds by District (Top 10)</div><canvas id="ch-beds" class="chart" height="130"></canvas></div>
+          <div class="card"><div class="ct">🚑 Ambulances by District (Top 10)</div><canvas id="ch-ambu" class="chart" height="130"></canvas></div>
+        </div>
+        <div class="two">
+          <div class="card"><div class="ct">🔴 District Status Breakdown</div><canvas id="ch-risk" class="chart" height="130"></canvas></div>
+          <div class="card"><div class="ct">❤️ ICU Capacity (Top 10)</div><canvas id="ch-icu"  class="chart" height="130"></canvas></div>
+        </div>
+      </div>
+
+      <!-- DISASTER -->
+      <div class="view" id="view-disaster">
+        <div class="card" style="background:var(--red2);border-color:rgba(255,69,96,0.25);margin-bottom:14px">
+          <div class="ct" style="color:var(--red)">🚨 Disaster Monitoring — READ ONLY</div>
+          <div style="font-size:11px;color:var(--text2)">Real-time district-level emergency pattern monitoring. Admin access required for alerts.</div>
+        </div>
+        <div class="two">
+          <div class="card"><div class="ct">⚠️ High Risk Districts</div><div id="risk-list"></div></div>
+          <div class="card"><div class="ct">📡 System Health</div><div id="health-list"></div></div>
+        </div>
+        <div class="card">
+          <div class="ct">📋 District Readiness Report</div>
+          <table><thead><tr><th>District</th><th>Readiness</th><th>Ambulances</th><th>Hospital Capacity</th><th>Last Sync</th></tr></thead>
+          <tbody id="readiness-tb"></tbody></table>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- RIGHT PANEL -->
+    <div class="rp">
+      <div class="rp-section"><div class="rpl">🔔 Alerts</div><div id="notif-list"></div></div>
+      <div class="rp-section">
+        <div class="rpl">🌍 Summary</div>
+        <div id="rp-summary"></div>
+      </div>
+    </div>
+  </div>
+</div>
+<div class="toast" id="toast"><div class="tt" id="tt"></div><div class="tm" id="tm"></div></div>
+
+<script>
+// ── AUTH ──────────────────────────────────────────────
+const role = sessionStorage.getItem('eras_role') || 'authority';
+const user = sessionStorage.getItem('eras_user') || 'govt';
+if (!sessionStorage.getItem('eras_user')) { location.href = '../index.html'; }
+
+applyHeaderBadge(role, user);
+startUptime();
+
+window.addEventListener('DOMContentLoaded', function() {
+
+// ── BUILD REGIONS/HOSPITALS ───────────────────────────
+const BIG = ['chennai','coimbatore','madurai','tiruchirappalli','salem','vellore','tirunelveli'];
+const REGIONS = {};
+DISTRICTS.forEach(d => {
+  const lo = d.status === 'LOW RES';
+  const base = BIG.includes(d.id) ? 5 : lo ? 1 : Math.floor(Math.random()*2)+2;
+  REGIONS[d.id] = {...d, ambulances:base*2, maxAmbu:base*2, beds:base*12, maxBeds:base*12, icu:lo?0:base*2, maxIcu:lo?2:base*2};
+});
+const HOSPITALS = [];
+DISTRICTS.forEach((d,i) => {
+  const big = BIG.includes(d.id);
+  const beds = big ? 80+~~(Math.random()*40) : 20+~~(Math.random()*20);
+  const icu  = REGIONS[d.id].status==='LOW RES' ? 0 : ~~(beds/10);
+  HOSPITALS.push({id:'H'+(HOSPITALS.length+1), region:d.id, beds, maxBeds:beds, icu, maxIcu:icu});
+  if (big) {
+    const b2 = 40+~~(Math.random()*20), i2 = ~~(b2/12);
+    HOSPITALS.push({id:'H'+(HOSPITALS.length+1), region:d.id, beds:b2, maxBeds:b2, icu:i2, maxIcu:i2});
+  }
+});
+
+// ── COMPUTED STATS ────────────────────────────────────
+const totAmbu  = Object.values(REGIONS).reduce((s,r)=>s+r.ambulances,0);
+const totBeds  = HOSPITALS.reduce((s,h)=>s+h.beds,0);
+const totIcu   = HOSPITALS.reduce((s,h)=>s+h.icu,0);
+const totMaxB  = HOSPITALS.reduce((s,h)=>s+h.maxBeds,0);
+const totMaxI  = HOSPITALS.reduce((s,h)=>s+h.maxIcu,0);
+const onlineD  = DISTRICTS.filter(d=>REGIONS[d.id].status==='ONLINE').length;
+const lowD     = DISTRICTS.filter(d=>REGIONS[d.id].status==='LOW RES').length;
+const freeAmbu = totAmbu; // all free at start
+
+// ── POPULATE DOM ──────────────────────────────────────
+const g = id => document.getElementById(id);
+
+// Overview stats
+g('ov-ambu').textContent    = totAmbu;
+g('ov-ambu-free').textContent = freeAmbu+' free';
+g('ov-hosp').textContent    = HOSPITALS.length;
+g('ov-beds').textContent    = totBeds+' beds';
+g('ov-online').textContent  = onlineD;
+g('ov-failed').textContent  = '0 failed';
+g('ov-low').textContent     = lowD;
+g('ov-bar-on').style.width  = (onlineD/38*100)+'%'; g('ov-val-on').textContent = onlineD;
+g('ov-bar-lo').style.width  = (lowD/38*100)+'%';    g('ov-val-lo').textContent = lowD;
+g('ov-val-fa').textContent  = '0';
+g('ambu-bar-free').style.width = '100%'; g('ambu-val-free').textContent = freeAmbu;
+g('ambu-bar-busy').style.width = '0%';  g('ambu-val-busy').textContent = 0;
+g('icu-pct').textContent = totMaxI ? Math.round((totMaxI-totIcu)/totMaxI*100)+'%' : '—';
+g('bed-pct').textContent = totMaxB ? Math.round((totMaxB-totBeds)/totMaxB*100)+'%' : '—';
+g('sb-tambu').textContent  = totAmbu;
+g('sb-thousp').textContent = HOSPITALS.length;
+g('sb-online').textContent = onlineD+'/38';
+g('sb-low').textContent    = lowD;
+g('an-ambu').textContent   = totAmbu;
+g('an-beds').textContent   = totBeds;
+g('an-icu').textContent    = totIcu;
+
+// Right panel
+g('rp-summary').innerHTML = `
+  <div style="font-size:10px;color:var(--text2);line-height:2.2">
+    <div>Total ambulances: <strong style="color:var(--text)">${totAmbu}</strong></div>
+    <div>Free: <strong style="color:var(--green)">${freeAmbu}</strong></div>
+    <div>Total beds: <strong style="color:var(--text)">${totBeds}</strong></div>
+    <div>ICU slots: <strong style="color:var(--purple)">${totIcu}</strong></div>
+    <div>Hospitals: <strong style="color:var(--text)">${HOSPITALS.length}</strong></div>
+    <div>Online nodes: <strong style="color:var(--green)">${onlineD}/38</strong></div>
+  </div>`;
+
+// Critical districts table
+g('crit-tb').innerHTML = DISTRICTS.filter(d=>REGIONS[d.id].status!=='ONLINE').map(d=>{
+  const r=REGIONS[d.id];
+  const risk=r.ambulances===0&&r.icu===0?'CRITICAL':r.ambulances<2?'HIGH':'MEDIUM';
+  return `<tr>
+    <td style="font-weight:700;font-size:10px">${d.name}</td>
+    <td><span class="rc-status s-lo" style="background:var(--amber2);color:var(--amber)">${r.status}</span></td>
+    <td style="font-family:var(--mono);font-size:9px;color:var(--red)">${r.ambulances}</td>
+    <td style="font-family:var(--mono);font-size:9px;color:var(--amber)">${r.beds}</td>
+    <td style="font-family:var(--mono);font-size:9px;color:var(--red)">${r.icu}</td>
+    <td><span class="badge b${risk==='CRITICAL'?'c':risk==='HIGH'?'h':'n'}">${risk}</span></td>
+  </tr>`;
+}).join('') || '<tr><td colspan="6" style="color:var(--green);text-align:center;padding:12px;font-size:10px">✅ All districts at adequate resource levels</td></tr>';
+
+// District table
+function renderDistrictTable(q) {
+  const filtered = DISTRICTS.filter(d=>!q||d.name.toLowerCase().includes(q.toLowerCase()));
+  g('all-dist-tb').innerHTML = filtered.map((d,i) => {
+    const r=REGIONS[d.id];
+    const hc=HOSPITALS.filter(h=>h.region===d.id).length;
+    const risk=r.ambulances===0?'HIGH':r.ambulances<2?'MEDIUM':'LOW';
+    const sc={ONLINE:'background:var(--green2);color:var(--green)','LOW RES':'background:var(--amber2);color:var(--amber)',FAILED:'background:var(--red2);color:var(--red)'}[r.status]||'';
+    return `<tr>
+      <td style="font-family:var(--mono);font-size:9px;color:var(--text3)">${DISTRICTS.indexOf(d)+1}</td>
+      <td style="font-weight:700;font-size:10px">${d.name}</td>
+      <td><span style="font-family:monospace;font-size:8px;font-weight:700;padding:2px 6px;border-radius:20px;${sc}">${r.status}</span></td>
+      <td style="font-family:var(--mono);font-size:9px;color:${r.ambulances<2?'var(--red)':'var(--green)'}">${r.ambulances}/${r.maxAmbu}</td>
+      <td style="font-family:var(--mono);font-size:9px;color:${r.beds<10?'var(--amber)':'var(--text)'}">${r.beds}/${r.maxBeds}</td>
+      <td style="font-family:var(--mono);font-size:9px;color:${r.icu===0?'var(--red)':'var(--text)'}">${r.icu}/${r.maxIcu}</td>
+      <td style="font-family:var(--mono);font-size:9px">${hc}</td>
+      <td><span class="badge b${risk==='HIGH'?'c':risk==='MEDIUM'?'h':'n'}">${risk}</span></td>
+    </tr>`;
+  }).join('');
+}
+function filterStatus(status){
+  renderDistrictTable('');
+  document.querySelectorAll('#all-dist-tb tr').forEach(r=>{
+    if(!r.textContent.includes(status)) r.style.display='none';
+  });
+}
+// Don't call at page load (table is hidden). Called when Districts tab is clicked.
+
+// Disaster section
+g('risk-list').innerHTML = DISTRICTS.filter(d=>REGIONS[d.id].status!=='ONLINE').map(d=>{
+  const r=REGIONS[d.id];
+  return `<div style="background:var(--red2);border:1px solid rgba(255,69,96,0.2);border-radius:7px;padding:8px 10px;margin-bottom:6px;font-size:10px">
+    <div style="font-weight:700;color:var(--red);margin-bottom:2px">⚠️ ${d.name}</div>
+    <div style="color:var(--text2)">Status: ${r.status} | 🚑 ${r.ambulances} | ❤️ ${r.icu} ICU</div>
+  </div>`;
+}).join('') || '<div style="color:var(--green);font-size:10px;padding:8px">✅ No high-risk districts</div>';
+
+g('health-list').innerHTML = `
+  <div style="font-size:10px;color:var(--text2);line-height:2.4">
+    <div>🟢 Online: <strong style="color:var(--text)">${onlineD}/38</strong></div>
+    <div>🟡 Low resource: <strong style="color:var(--amber)">${lowD}/38</strong></div>
+    <div>🔴 Failed: <strong style="color:var(--green)">0/38</strong></div>
+    <div>🔄 Replication: <strong style="color:var(--teal)">Active</strong></div>
+    <div>⚡ Failover: <strong style="color:var(--teal)">Ready</strong></div>
+    <div>📡 Nodes synced: <strong style="color:var(--text)">38/38</strong></div>
+  </div>`;
+
+g('readiness-tb').innerHTML = DISTRICTS.slice(0,15).map(d=>{
+  const r=REGIONS[d.id];
+  const score=Math.round((r.ambulances/r.maxAmbu*50)+(r.icu/Math.max(r.maxIcu,1)*50));
+  return `<tr>
+    <td style="font-weight:700;font-size:10px">${d.name}</td>
+    <td><span class="badge b${score>70?'n':score>40?'h':'c'}">${score>70?'HIGH':'MEDIUM'}</span></td>
+    <td style="font-family:var(--mono);font-size:9px">${r.ambulances}</td>
+    <td style="font-family:var(--mono);font-size:9px">${r.beds} beds / ${r.icu} ICU</td>
+    <td style="font-family:var(--mono);font-size:9px;color:var(--text3)">${nowT()}</td>
+  </tr>`;
+}).join('');
+
+addNotif('ngreen','🏛️','Authority access granted','Read-only monitoring active');
+
+// Override showView to populate tables when tabs become visible
+const _sv = showView;
+showView = function(name) {
+  _sv(name);
+  if (name === 'districts') {
+    document.getElementById('dist-search').value = '';
+    renderDistrictTable('');
+  }
+  if (name === 'analytics') setTimeout(drawAllCharts, 50);
+};
+
+// ── PURE CANVAS CHARTS (zero CDN) ────────────────────
+function drawBar(canvasId, labels, values, color) {
+  const cv = document.getElementById(canvasId);
+  if (!cv) return;
+  const w = cv.parentElement?.parentElement?.clientWidth || cv.parentElement?.clientWidth || 500;
+  cv.width  = Math.max(w - 32, 200);
+  cv.height = 130;
+  const cx = cv.getContext('2d');
+  const W = cv.width, H = cv.height;
+  const pad = {t:10, b:28, l:8, r:8};
+  const cw = W - pad.l - pad.r;
+  const ch = H - pad.t - pad.b;
+  const max = Math.max(...values, 1);
+  const bw = Math.floor(cw / labels.length) - 4;
+
+  cx.clearRect(0,0,W,H);
+
+  // Grid lines
+  cx.strokeStyle = 'rgba(99,179,237,0.06)'; cx.lineWidth = 1;
+  [0.25,0.5,0.75,1].forEach(f=>{
+    const y = pad.t + ch*(1-f);
+    cx.beginPath(); cx.moveTo(pad.l, y); cx.lineTo(W-pad.r, y); cx.stroke();
+  });
+
+  // Bars
+  labels.forEach((lbl, i) => {
+    const bh  = (values[i] / max) * ch;
+    const bx  = pad.l + i*(cw/labels.length) + 2;
+    const by  = pad.t + ch - bh;
+
+    // Bar fill
+    cx.fillStyle = color + 'aa';
+    cx.beginPath();
+    cx.roundRect ? cx.roundRect(bx, by, bw, bh, [3,3,0,0]) : cx.rect(bx, by, bw, bh);
+    cx.fill();
+
+    // Bar border top
+    cx.strokeStyle = color;
+    cx.lineWidth = 1.5;
+    cx.beginPath(); cx.moveTo(bx, by); cx.lineTo(bx+bw, by); cx.stroke();
+
+    // Label
+    cx.fillStyle = '#4a5568';
+    cx.font = '8px Segoe UI, sans-serif';
+    cx.textAlign = 'center';
+    cx.fillText(lbl.slice(0,5), bx + bw/2, H - 6);
+
+    // Value on top of bar
+    if (bh > 16) {
+      cx.fillStyle = '#94a3b8';
+      cx.font = '8px monospace';
+      cx.fillText(values[i], bx + bw/2, by + 10);
+    }
+  });
+}
+
+function drawDonut(canvasId, labels, values, colors) {
+  const cv = document.getElementById(canvasId);
+  if (!cv) return;
+  const w = cv.parentElement?.parentElement?.clientWidth || cv.parentElement?.clientWidth || 500;
+  cv.width  = Math.max(w - 32, 200);
+  cv.height = 130;
+  const cx  = cv.getContext('2d');
+  const W = cv.width, H = cv.height;
+  cx.clearRect(0,0,W,H);
+  const total = values.reduce((s,v)=>s+v, 0) || 1;
+  const cx2 = W/2 - 60, cy2 = H/2, r = Math.min(H/2-10, 55), ri = r*0.55;
+  let angle = -Math.PI/2;
+
+  values.forEach((v, i) => {
+    const slice = (v/total) * Math.PI * 2;
+    cx.beginPath();
+    cx.moveTo(cx2, cy2);
+    cx.arc(cx2, cy2, r, angle, angle+slice);
+    cx.closePath();
+    cx.fillStyle   = colors[i]+'cc';
+    cx.fill();
+    cx.strokeStyle = colors[i];
+    cx.lineWidth   = 1.5;
+    cx.stroke();
+    angle += slice;
+  });
+
+  // Donut hole
+  cx.beginPath(); cx.arc(cx2, cy2, ri, 0, Math.PI*2);
+  cx.fillStyle = '#07090f'; cx.fill();
+
+  // Center text
+  cx.fillStyle = '#dde6f0';
+  cx.font = 'bold 14px monospace';
+  cx.textAlign = 'center'; cx.textBaseline = 'middle';
+  cx.fillText('38', cx2, cy2-6);
+  cx.font = '9px Segoe UI'; cx.fillStyle = '#6b7a90';
+  cx.fillText('districts', cx2, cy2+8);
+
+  // Legend (right side)
+  const lx = cx2 + r + 20, ly0 = H/2 - labels.length*12;
+  labels.forEach((lbl, i) => {
+    const ly = ly0 + i*24;
+    cx.fillStyle = colors[i];
+    cx.beginPath(); cx.arc(lx+5, ly+5, 5, 0, Math.PI*2); cx.fill();
+    cx.fillStyle = '#6b7a90'; cx.font = '10px Segoe UI';
+    cx.textAlign = 'left'; cx.textBaseline = 'top';
+    cx.fillText(`${lbl}: ${values[i]}`, lx+14, ly-1);
+  });
+}
+
+// Draw all charts after layout is complete
+function drawAllCharts() {
+  const top10 = DISTRICTS.slice(0,10);
+  drawBar('ch-beds', top10.map(d=>d.name), top10.map(d=>REGIONS[d.id].beds), '#22d3ee');
+  drawBar('ch-ambu', top10.map(d=>d.name), top10.map(d=>REGIONS[d.id].ambulances), '#3b82f6');
+  drawDonut('ch-risk', ['Online','Low Res','Failed'], [onlineD, lowD, 0], ['#10d9a0','#fbbf24','#ff4560']);
+  drawBar('ch-icu', top10.map(d=>d.name), top10.map(d=>REGIONS[d.id].icu), '#a78bfa');
+}
+
+// Wait for layout, then draw
+setTimeout(drawAllCharts, 100);
+window.addEventListener('resize', drawAllCharts);
+
+// Redraw when analytics tab is clicked (canvas sizes may change)
+document.querySelectorAll('[data-view="analytics"]').forEach(el => {
+  el.addEventListener('click', () => setTimeout(drawAllCharts, 50));
+});
+
+}); // end DOMContentLoaded
+</script>
+</body>
+</html>

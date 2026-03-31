@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/><meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>ERAS v4.0 — Login | Tamil Nadu Emergency System</title>
+<link rel="stylesheet" href="css/style.css"/>
+<style>
+body{display:flex;align-items:center;justify-content:center;min-height:100vh;overflow:auto;}
+.ln-bg{position:fixed;inset:0;background:radial-gradient(ellipse 80% 50% at 50% -10%,rgba(59,130,246,0.1),transparent),radial-gradient(ellipse 50% 50% at 90% 90%,rgba(167,139,250,0.07),transparent);}
+.ln-grid{position:fixed;inset:0;background-image:linear-gradient(rgba(59,130,246,0.035) 1px,transparent 1px),linear-gradient(90deg,rgba(59,130,246,0.035) 1px,transparent 1px);background-size:44px 44px;}
+.ln-box{position:relative;z-index:2;width:460px;background:var(--bg2);border:1px solid var(--border2);border-radius:18px;padding:36px;box-shadow:0 40px 80px rgba(0,0,0,0.7);margin:20px;}
+.ln-logo{display:flex;align-items:center;gap:14px;margin-bottom:28px;}
+.ln-icon{width:50px;height:50px;border-radius:13px;background:linear-gradient(135deg,var(--red),#ff7f40);display:flex;align-items:center;justify-content:center;font-size:24px;box-shadow:0 8px 24px rgba(255,69,96,0.35);}
+.ln-title{font-size:22px;font-weight:800;letter-spacing:-0.02em;}
+.ln-sub{font-size:10px;color:var(--text2);letter-spacing:0.1em;text-transform:uppercase;margin-top:2px;}
+.ln-sect{font-family:var(--mono);font-size:9px;color:var(--text3);letter-spacing:0.12em;text-transform:uppercase;margin-bottom:10px;}
+.role-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:22px;}
+.role-btn{display:flex;flex-direction:column;align-items:center;gap:5px;padding:14px 8px;border-radius:10px;border:1px solid var(--border);background:var(--bg3);cursor:pointer;transition:all 0.15s;text-align:center;}
+.role-btn:hover{border-color:var(--border2);background:var(--bg4);}
+.role-btn.sel{border-color:var(--blue);background:var(--blue2);box-shadow:0 0 0 1px var(--blue);}
+.ri{font-size:20px;}.rn{font-size:11px;font-weight:700;}.rd{font-size:9px;color:var(--text2);}
+.rc-dispatcher.sel{border-color:var(--teal);background:var(--teal2);box-shadow:0 0 0 1px var(--teal);}
+.rc-hospital.sel{border-color:var(--green);background:var(--green2);box-shadow:0 0 0 1px var(--green);}
+.rc-ambulance.sel{border-color:var(--amber);background:var(--amber2);box-shadow:0 0 0 1px var(--amber);}
+.rc-authority.sel{border-color:var(--purple);background:var(--purple2);box-shadow:0 0 0 1px var(--purple);}
+.ln-f{margin-bottom:12px;}
+.ln-lbl{font-family:var(--mono);font-size:9px;color:var(--text2);letter-spacing:0.08em;display:block;margin-bottom:5px;}
+.ln-inp{width:100%;background:var(--bg3);border:1px solid var(--border);color:var(--text);border-radius:8px;padding:9px 13px;font-size:12px;font-family:var(--head);transition:border-color 0.15s;}
+.ln-inp:focus{outline:none;border-color:var(--blue);}
+.ln-btn{width:100%;padding:12px;border-radius:8px;border:none;background:var(--blue);color:#fff;font-family:var(--head);font-size:13px;font-weight:700;cursor:pointer;transition:all 0.15s;box-shadow:0 8px 20px rgba(59,130,246,0.3);}
+.ln-btn:hover{background:#2563eb;transform:translateY(-1px);}
+.ln-err{color:var(--red);font-size:11px;text-align:center;margin-bottom:10px;display:none;}
+</style>
+</head>
+<body>
+<div class="ln-bg"></div>
+<div class="ln-grid"></div>
+<div class="ln-box">
+  <div class="ln-logo">
+    <div class="ln-icon">🚑</div>
+    <div>
+      <div class="ln-title">ERAS v4.0</div>
+      <div class="ln-sub">Tamil Nadu · 38 Districts · Distributed Emergency System</div>
+    </div>
+  </div>
+  <div class="ln-sect">Select your role</div>
+  <div class="role-grid">
+    <div class="role-btn sel" data-role="admin" data-page="pages/admin.html" onclick="selectRole(this)">
+      <div class="ri">👨‍💻</div><div class="rn">Admin</div><div class="rd">Full system access</div>
+    </div>
+    <div class="role-btn rc-dispatcher" data-role="dispatcher" data-page="pages/dispatcher.html" onclick="selectRole(this)">
+      <div class="ri">🎧</div><div class="rn">Dispatcher</div><div class="rd">Create &amp; allocate emergencies</div>
+    </div>
+    <div class="role-btn rc-hospital" data-role="hospital" data-page="pages/hospital.html" onclick="selectRole(this)">
+      <div class="ri">🏥</div><div class="rn">Hospital</div><div class="rd">Manage beds, ICU &amp; patients</div>
+    </div>
+    <div class="role-btn rc-ambulance" data-role="ambulance" data-page="pages/ambulance.html" onclick="selectRole(this)">
+      <div class="ri">🚑</div><div class="rn">Ambulance</div><div class="rd">Update availability &amp; accept jobs</div>
+    </div>
+    <div class="role-btn rc-authority" data-role="authority" data-page="pages/authority.html" onclick="selectRole(this)" style="grid-column:span 2">
+      <div class="ri">🏛️</div><div class="rn">Government Authority</div><div class="rd">Analytics &amp; disaster monitoring</div>
+    </div>
+  </div>
+  <div class="ln-f"><label class="ln-lbl">Username</label><input class="ln-inp" id="lu" placeholder="Enter username" autocomplete="username"/></div>
+  <div class="ln-f"><label class="ln-lbl">Password</label><input class="ln-inp" type="password" id="lp" placeholder="Enter password" autocomplete="current-password" onkeydown="if(event.key==='Enter')doLogin()"/></div>
+  <div class="ln-err" id="le">❌ Please enter both username and password.</div>
+  <button class="ln-btn" onclick="doLogin()">🔐 Secure Login</button>
+</div>
+<script>
+let selRole='admin', selPage='pages/admin.html';
+function selectRole(el){
+  document.querySelectorAll('.role-btn').forEach(b=>b.classList.remove('sel'));
+  el.classList.add('sel');
+  selRole=el.dataset.role; selPage=el.dataset.page;
+}
+function doLogin(){
+  const u=document.getElementById('lu').value.trim();
+  const p=document.getElementById('lp').value.trim();
+  if(!u||!p){document.getElementById('le').style.display='block';return;}
+  sessionStorage.setItem('eras_role',selRole);
+  sessionStorage.setItem('eras_user',u);
+  window.location.href=selPage;
+}
+</script>
+</body>
+</html>

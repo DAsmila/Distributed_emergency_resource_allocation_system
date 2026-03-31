@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/><meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>ERAS v4.0 — Hospital Staff</title>
+<link rel="stylesheet" href="../css/style.css"/>
+<script src="../js/data.js"></script>
+<script src="../js/ui.js"></script>
+</head>
+<body class="role-hospital">
+<div class="app">
+  <div class="hdr">
+    <div style="display:flex;align-items:center;gap:14px">
+      <div class="h-ico">🏥</div>
+      <div><div class="h-title">ERAS v4.0 — Hospital Staff</div><div class="h-ver">BED &amp; ICU MANAGEMENT · ACCEPT PATIENTS · TAMIL NADU</div></div>
+    </div>
+    <div class="htabs">
+      <a class="htab on" data-view="capacity" onclick="showView('capacity')">🏥 Capacity</a>
+      <a class="htab" data-view="patients"   onclick="showView('patients')">🩺 Patients</a>
+      <a class="htab" data-view="incoming"   onclick="showView('incoming')">📥 Incoming</a>
+      <a class="htab" data-view="aud"        onclick="showView('aud')">🧾 Audit</a>
+    </div>
+    <div style="display:flex;align-items:center;gap:10px">
+      <div class="sync-chip"><div class="sdot"></div><span id="sync-lbl">SYNCED</span></div>
+      <div class="uptime-chip">⏱ <span id="uptime">00:00:00</span></div>
+      <div class="rbadge" id="rbadge"></div>
+      <div class="uname" id="uname"></div>
+      <button class="lo-btn" onclick="location.href='../index.html'">LOGOUT</button>
+    </div>
+  </div>
+
+  <div class="body-layout" style="grid-template-columns:220px 1fr 250px">
+    <div class="sb">
+      <div class="sbl">Navigation</div>
+      <a class="sbi on" data-view="capacity" onclick="showView('capacity')">🏥 My Capacity</a>
+      <a class="sbi" data-view="patients" onclick="showView('patients')">🩺 Patient Records</a>
+      <a class="sbi" data-view="incoming" onclick="showView('incoming')">📥 Incoming</a>
+      <a class="sbi" data-view="aud" onclick="showView('aud')">🧾 Audit Trail</a>
+      <div class="sbl" style="margin-top:12px">⚠️ Your Access</div>
+      <div style="background:var(--green2);border:1px solid rgba(16,217,160,0.2);border-radius:8px;padding:10px;font-size:10px;color:var(--text2);line-height:1.7">
+        ✅ Update bed count<br/>✅ Update ICU count<br/>✅ Accept/reject patients<br/>✅ View incoming alerts<br/>❌ Create emergencies<br/>❌ Control nodes
+      </div>
+      <div class="sbl" style="margin-top:12px">Select Hospital</div>
+      <select class="fs" id="my-hospital" onchange="loadMyHospital()" style="width:100%;font-size:10px"></select>
+    </div>
+
+    <div class="main">
+
+      <!-- CAPACITY -->
+      <div class="view on" id="view-capacity">
+        <div class="card" id="hosp-banner" style="background:var(--bg3);border-color:var(--border2)">
+          <div style="display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:10px">
+            <div>
+              <div style="font-size:16px;font-weight:700;margin-bottom:4px" id="my-hosp-name">Select a hospital</div>
+              <div style="font-size:10px;color:var(--text2)" id="my-hosp-dist">—</div>
+            </div>
+            <div style="display:flex;gap:16px">
+              <div style="text-align:center"><div style="font-family:var(--mono);font-size:22px;font-weight:600;color:var(--blue)" id="h-beds">—</div><div style="font-size:9px;color:var(--text2)">Beds Available</div></div>
+              <div style="text-align:center"><div style="font-family:var(--mono);font-size:22px;font-weight:600;color:var(--purple)" id="h-icu">—</div><div style="font-size:9px;color:var(--text2)">ICU Available</div></div>
+              <div style="text-align:center"><div style="font-family:var(--mono);font-size:22px;font-weight:600;color:var(--green)" id="h-score">—</div><div style="font-size:9px;color:var(--text2)">AI Score</div></div>
+            </div>
+          </div>
+        </div>
+        <div class="two">
+          <div class="card">
+            <div class="ct">➕ Add Capacity</div>
+            <div class="fgrid">
+              <div class="fg"><div class="fl">Add beds</div><input class="fi" id="add-beds" type="number" value="5" min="0"/></div>
+              <div class="fg"><div class="fl">Add ICU slots</div><input class="fi" id="add-icu" type="number" value="1" min="0"/></div>
+            </div>
+            <button class="btn bp" style="width:100%;margin-bottom:8px" onclick="addCapacity()">➕ Update Capacity</button>
+          </div>
+          <div class="card">
+            <div class="ct">➖ Release Capacity</div>
+            <div class="fgrid">
+              <div class="fg"><div class="fl">Release beds</div><input class="fi" id="rel-beds" type="number" value="2" min="0"/></div>
+              <div class="fg"><div class="fl">Release ICU</div><input class="fi" id="rel-icu" type="number" value="0" min="0"/></div>
+            </div>
+            <button class="btn bw" style="width:100%" onclick="releaseCapacity()">➖ Mark Occupied</button>
+          </div>
+        </div>
+        <div class="card">
+          <div class="ct">📊 All Hospitals — Tamil Nadu</div>
+          <table>
+            <thead><tr><th>Hospital</th><th>District</th><th>Beds Free</th><th>ICU Free</th><th>AI Score</th><th>Status</th></tr></thead>
+            <tbody id="all-hosp-tb"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- PATIENTS -->
+      <div class="view" id="view-patients">
+        <div class="card">
+          <div class="ct">🩺 Patient Register
+            <button class="btn bs btn-sm" onclick="addDemoPatient()">+ Add Demo Patient</button>
+          </div>
+          <table>
+            <thead><tr><th>Patient ID</th><th>Name</th><th>Condition</th><th>Ward</th><th>Admitted</th><th>Status</th></tr></thead>
+            <tbody id="patient-tb"><tr><td colspan="6" style="color:var(--text3);text-align:center;padding:16px">No patients recorded</td></tr></tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- INCOMING -->
+      <div class="view" id="view-incoming">
+        <div class="card">
+          <div class="ct">📥 Incoming Emergency Alerts</div>
+          <div id="incoming-list">
+            <div style="color:var(--text3);font-size:10px;text-align:center;padding:22px">No incoming emergencies. Alerts will appear here when dispatched to your hospital.</div>
+          </div>
+          <button class="btn bp" style="margin-top:10px" onclick="simulateIncoming()">🔔 Simulate Incoming Alert</button>
+        </div>
+      </div>
+
+      <!-- AUDIT -->
+      <div class="view" id="view-aud">
+        <div class="card">
+          <div class="ct">🧾 Hospital Audit Trail</div>
+          <div id="aud-list"><div style="color:var(--text3);text-align:center;padding:22px;font-size:10px">No entries yet.</div></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="rp">
+      <div class="rp-section"><div class="rpl">🔔 Notifications</div><div id="notif-list"></div></div>
+      <div class="rp-section">
+        <div class="rpl">🏥 My Hospital Stats</div>
+        <div style="display:flex;flex-direction:column;gap:8px" id="my-stats">
+          <div style="font-size:10px;color:var(--text3)">Select your hospital to see stats.</div>
+        </div>
+      </div>
+      <div class="rp-section">
+        <div class="rpl">🔄 Sync Status</div>
+        <div class="audit-row"><div class="at" id="rt1">--:--</div><div class="atype tR">REPLICA</div><div class="amsg">Capacity synced to all nodes</div></div>
+        <div class="audit-row"><div class="at" id="rt2">--:--</div><div class="atype tA">SYNC OK</div><div class="amsg">38 districts updated</div></div>
+      </div>
+    </div>
+  </div>
+</div>
+<div class="toast" id="toast"><div class="tt" id="tt"></div><div class="tm" id="tm"></div></div>
+
+<script>
+const role = sessionStorage.getItem('eras_role') || 'hospital';
+const user = sessionStorage.getItem('eras_user') || 'hospital';
+if (!sessionStorage.getItem('eras_user')) location.href = '../index.html';
+
+applyHeaderBadge(role, user);
+startUptime();
+populateHospSelect('my-hospital');
+buildRegList('');
+
+addNotif('ngreen','✅','Hospital staff online','Capacity management ready');
+addLog('LOGIN',`<strong>${user}</strong> logged in as Hospital Staff<div class="anode">Role: Hospital | Restricted access</div>`);
+
+let myHospId = HOSPITALS[0]?.id;
+let patients = [];
+let patCount = 1;
+
+function loadMyHospital() {
+  myHospId = document.getElementById('my-hospital').value;
+  const h = HOSPITALS.find(x => x.id === myHospId);
+  if (!h) return;
+  document.getElementById('my-hosp-name').textContent = h.name;
+  document.getElementById('my-hosp-dist').textContent = '📍 '+REGIONS[h.region]?.name;
+  document.getElementById('h-beds').textContent = h.beds;
+  document.getElementById('h-icu').textContent  = h.icu;
+  document.getElementById('h-score').textContent = Math.round(Math.max(0,scoreHosp(h,'general',h.lat,h.lng)));
+  refreshStats();
+  renderAllHospitals();
+}
+
+function refreshStats() {
+  const h = HOSPITALS.find(x => x.id === myHospId);
+  if (!h) return;
+  const bedPct = Math.round((h.maxBeds-h.beds)/h.maxBeds*100);
+  const icuPct = h.maxIcu ? Math.round((h.maxIcu-h.icu)/h.maxIcu*100) : 0;
+  document.getElementById('my-stats').innerHTML = `
+    <div class="mbar"><div class="mbl" style="width:64px">🏥 Beds used</div><div class="mbt"><div class="mbf" style="width:${bedPct}%;background:var(--blue)"></div></div><div class="mbv">${bedPct}%</div></div>
+    <div class="mbar"><div class="mbl" style="width:64px">❤️ ICU used</div><div class="mbt"><div class="mbf" style="width:${icuPct}%;background:var(--purple)"></div></div><div class="mbv">${icuPct}%</div></div>
+    <div style="font-size:10px;color:var(--text2);margin-top:8px">Total capacity: ${h.maxBeds} beds, ${h.maxIcu} ICU</div>`;
+}
+
+function addCapacity() {
+  const h = HOSPITALS.find(x => x.id === myHospId);
+  const b = parseInt(document.getElementById('add-beds').value)||0;
+  const i = parseInt(document.getElementById('add-icu').value)||0;
+  if (!h) { toast('tw','Select hospital first',''); return; }
+  h.beds += b; h.maxBeds += b; h.icu += i; h.maxIcu += i;
+  REGIONS[h.region].beds = Math.min(REGIONS[h.region].beds+b, REGIONS[h.region].maxBeds);
+  addLog('ALLOCATION',`${h.name}: +${b} beds, +${i} ICU added<div class="anode">By: ${user} | Role: Hospital Staff</div>`);
+  addNotif('ngreen','🏥',`Capacity updated`,`+${b} beds, +${i} ICU`);
+  toast('ts','Capacity updated',`+${b} beds, +${i} ICU`);
+  loadMyHospital(); triggerSync(h.region); updateRegCard(h.region); renderAllHospitals();
+}
+
+function releaseCapacity() {
+  const h = HOSPITALS.find(x => x.id === myHospId);
+  const b = parseInt(document.getElementById('rel-beds').value)||0;
+  const i = parseInt(document.getElementById('rel-icu').value)||0;
+  if (!h) { toast('tw','Select hospital first',''); return; }
+  h.beds = Math.max(0, h.beds-b); h.icu = Math.max(0, h.icu-i);
+  addLog('ALLOCATION',`${h.name}: -${b} beds occupied, -${i} ICU occupied<div class="anode">By: ${user}</div>`);
+  addNotif('namber','🏥','Capacity reduced',`-${b} beds, -${i} ICU marked occupied`);
+  toast('tw','Beds marked occupied',`-${b} beds`);
+  loadMyHospital(); triggerSync(h.region); renderAllHospitals();
+}
+
+function renderAllHospitals() {
+  document.getElementById('all-hosp-tb').innerHTML = HOSPITALS.slice(0,20).map(h => {
+    const pct = h.maxBeds ? Math.round(h.beds/h.maxBeds*100) : 0;
+    return `<tr>
+      <td style="font-weight:700;font-size:10px">${h.name.slice(0,28)}</td>
+      <td style="font-size:9px;color:var(--text2)">${REGIONS[h.region]?.name||h.region}</td>
+      <td style="font-family:var(--mono);font-size:9px;color:${h.beds<5?'var(--red)':'var(--text)'}">${h.beds}/${h.maxBeds}</td>
+      <td style="font-family:var(--mono);font-size:9px;color:${h.icu<2?'var(--amber)':'var(--text)'}">${h.icu}/${h.maxIcu}</td>
+      <td style="font-family:var(--mono);font-size:9px;color:var(--blue)">${Math.round(Math.max(0,scoreHosp(h,'general',h.lat,h.lng)))}</td>
+      <td><span class="badge ${pct>70?'bb':'bf'}">${pct>70?'HIGH LOAD':'AVAILABLE'}</span></td>
+    </tr>`;
+  }).join('');
+}
+
+function addDemoPatient() {
+  const names = ['Ravi Kumar','Priya Devi','Mohammed Ali','Suresh Babu','Lakshmi S','Arjun T','Meena R'];
+  const conds = ['Cardiac','Fracture','Burn Injury','Trauma','Road Accident','Fever','Stroke'];
+  const wards = ['ICU','General','Emergency','Ortho','Cardio'];
+  const p = {id:'P-'+String(patCount++).padStart(3,'0'),name:names[Math.floor(Math.random()*names.length)],cond:conds[Math.floor(Math.random()*conds.length)],ward:wards[Math.floor(Math.random()*wards.length)],time:nowT(),status:'Admitted'};
+  patients.unshift(p);
+  const tb = document.getElementById('patient-tb');
+  tb.innerHTML = patients.map(pt => `<tr><td style="font-family:var(--mono);font-size:9px">${pt.id}</td><td style="font-size:10px;font-weight:600">${pt.name}</td><td style="font-size:9px;color:var(--text2)">${pt.cond}</td><td style="font-size:9px">${pt.ward}</td><td style="font-family:var(--mono);font-size:9px;color:var(--text3)">${pt.time}</td><td><span class="badge bf">ADMITTED</span></td></tr>`).join('');
+  addNotif('nblue','🩺','Patient admitted',p.name+' — '+p.cond);
+  toast('ts','Patient added',p.name);
+}
+
+function simulateIncoming() {
+  const pris = ['CRITICAL','HIGH','NORMAL'];
+  const types = ['Cardiac Arrest','Road Accident','Fire Injury','Trauma'];
+  const pri = pris[Math.floor(Math.random()*pris.length)];
+  const typ = types[Math.floor(Math.random()*types.length)];
+  const dist = DISTRICTS[Math.floor(Math.random()*DISTRICTS.length)];
+  const il = document.getElementById('incoming-list');
+  const div = document.createElement('div');
+  div.style.cssText='background:var(--red2);border:1px solid rgba(255,69,96,0.25);border-radius:8px;padding:12px;margin-bottom:8px;animation:nf 0.3s ease;';
+  div.innerHTML=`<div style="display:flex;justify-content:space-between;align-items:flex-start">
+    <div><div style="font-size:11px;font-weight:700;color:var(--red);margin-bottom:4px">🚨 Incoming Emergency — ${typ}</div>
+    <div style="font-size:10px;color:var(--text2)">Priority: <span class="badge b${pri[0].toLowerCase()}">${pri}</span> | From: ${dist.name} district</div>
+    <div style="font-size:9px;color:var(--text3);margin-top:4px">ETA: ~${Math.floor(Math.random()*15)+5} mins | ${nowT()}</div></div>
+    <div style="display:flex;gap:6px;flex-shrink:0"><button class="btn bs btn-sm" onclick="acceptPatient(this)">✅ Accept</button><button class="btn bd btn-sm" onclick="rejectPatient(this)">❌ Reject</button></div>
+  </div>`;
+  il.insertBefore(div, il.firstChild);
+  addNotif('nred','🚨','Incoming emergency',typ+' from '+dist.name);
+  toast('tw','Incoming alert',typ+' — '+pri);
+}
+
+function acceptPatient(btn){const card=btn.closest('div[style]');card.style.background='var(--green2)';card.style.borderColor='rgba(16,217,160,0.25)';btn.parentElement.innerHTML='<span style="color:var(--green);font-size:10px;font-weight:700">✅ Accepted</span>';toast('ts','Patient accepted','Bed reserved');}
+function rejectPatient(btn){const card=btn.closest('div[style]');card.style.background='var(--bg3)';btn.parentElement.innerHTML='<span style="color:var(--red);font-size:10px;font-weight:700">❌ Rejected</span>';toast('tw','Patient rejected','');}
+
+renderAllHospitals();
+loadMyHospital();
+</script>
+</body>
+</html>

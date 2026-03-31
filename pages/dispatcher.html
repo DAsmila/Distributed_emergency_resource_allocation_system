@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/><meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>ERAS v4.0 — Dispatcher</title>
+<link rel="stylesheet" href="../css/style.css"/>
+<script src="../js/data.js"></script>
+<script src="../js/ui.js"></script>
+</head>
+<body class="role-dispatcher">
+<div class="app">
+  <div class="hdr">
+    <div style="display:flex;align-items:center;gap:14px">
+      <div class="h-ico">🎧</div>
+      <div><div class="h-title">ERAS v4.0 — Dispatcher</div><div class="h-ver">EMERGENCY CREATION &amp; ALLOCATION · TAMIL NADU</div></div>
+    </div>
+    <div class="htabs">
+      <a class="htab on" data-view="emrg" onclick="showView('emrg')">🚨 New Emergency</a>
+      <a class="htab" data-view="queue" onclick="showView('queue')">📋 Queue</a>
+      <a class="htab" data-view="aud"  onclick="showView('aud')">🧾 Audit</a>
+    </div>
+    <div style="display:flex;align-items:center;gap:10px">
+      <div class="sync-chip"><div class="sdot"></div><span id="sync-lbl">SYNCED</span></div>
+      <div class="uptime-chip">⏱ <span id="uptime">00:00:00</span></div>
+      <div class="rbadge" id="rbadge"></div>
+      <div class="uname" id="uname"></div>
+      <button class="lo-btn" onclick="location.href='../index.html'">LOGOUT</button>
+    </div>
+  </div>
+
+  <div class="body-layout" style="grid-template-columns:230px 1fr 260px">
+    <div class="sb">
+      <div class="sbl">Navigation</div>
+      <a class="sbi on" data-view="emrg" onclick="showView('emrg')">🚨 New Emergency</a>
+      <a class="sbi" data-view="queue" onclick="showView('queue')">📋 Allocation Queue</a>
+      <a class="sbi" data-view="aud" onclick="showView('aud')">🧾 Audit Trail</a>
+      <div class="sbl" style="margin-top:16px">⚠️ Restricted Access</div>
+      <div style="background:var(--red2);border:1px solid rgba(255,69,96,0.2);border-radius:8px;padding:10px;font-size:10px;color:var(--text2);line-height:1.6">
+        As <strong style="color:var(--teal)">Dispatcher</strong>, you can:<br/>
+        ✅ Create emergencies<br/>✅ Allocate resources<br/>✅ View audit trail<br/>
+        ❌ Fail/recover nodes<br/>❌ Run simulations<br/>❌ Edit resources
+      </div>
+      <div class="sbl" style="margin-top:12px">🌍 District Search</div>
+      <div class="reg-search"><input placeholder="Search district…" oninput="buildRegList(this.value)"/></div>
+      <div class="reg-list" id="reg-list"></div>
+    </div>
+
+    <div class="main">
+      <!-- EMERGENCY -->
+      <div class="view on" id="view-emrg">
+        <div class="two">
+          <div>
+            <div class="card">
+              <div class="ct">🚨 Create Emergency Request</div>
+              <div id="loc-bar" class="loc-bar" style="display:none">
+                <span style="font-size:16px">📍</span>
+                <span style="flex:1;color:var(--text2)">Live GPS location</span>
+                <span id="loc-val" style="font-family:var(--mono);font-size:10px;color:var(--green)"></span>
+              </div>
+              <button class="btn bp" style="width:100%;margin-bottom:12px" onclick="captureGPS()">📍 Capture GPS Location</button>
+              <div class="fgrid">
+                <div class="fg"><div class="fl">Emergency ID</div><input class="fi" id="eid" value="E-001"/></div>
+                <div class="fg"><div class="fl">Priority</div>
+                  <select class="fs" id="epri">
+                    <option value="CRITICAL">🔴 CRITICAL</option>
+                    <option value="HIGH">🟠 HIGH</option>
+                    <option value="NORMAL" selected>🟢 NORMAL</option>
+                  </select></div>
+                <div class="fg"><div class="fl">Emergency Type</div>
+                  <select class="fs" id="etype">
+                    <option value="accident">Road Accident</option>
+                    <option value="cardiac">Cardiac Arrest</option>
+                    <option value="fire">Fire Injury</option>
+                    <option value="trauma">Trauma</option>
+                    <option value="flood">Flood Emergency</option>
+                    <option value="other">Other</option>
+                  </select></div>
+                <div class="fg"><div class="fl">District</div><select class="fs" id="eregion"></select></div>
+              </div>
+              <div class="fgrid">
+                <div class="fg"><div class="fl">Caller name</div><input class="fi" id="caller" placeholder="Caller name"/></div>
+                <div class="fg"><div class="fl">Phone</div><input class="fi" id="phone" placeholder="+91 XXXXX XXXXX"/></div>
+              </div>
+              <button class="btn bp" style="width:100%" onclick="createEmergency()">🤖 Smart Allocate Resources</button>
+            </div>
+            <div id="em-result" style="display:none"></div>
+          </div>
+          <div>
+            <div class="card"><div class="ct">🤖 AI Hospital Suggestions</div><div id="ai-box"><div style="color:var(--text3);font-size:10px">Submit an emergency to see AI-ranked hospitals with ETAs.</div></div></div>
+            <div class="card">
+              <div class="ct">📊 Today's Stats</div>
+              <div class="mbar"><div class="mbl">🔴 Critical</div><div class="mbt"><div class="mbf" id="pb-c" style="width:0%;background:var(--red)"></div></div><div class="mbv" id="pv-c">0</div></div>
+              <div class="mbar"><div class="mbl">🟠 High</div><div class="mbt"><div class="mbf" id="pb-h" style="width:0%;background:var(--amber)"></div></div><div class="mbv" id="pv-h">0</div></div>
+              <div class="mbar"><div class="mbl">🟢 Normal</div><div class="mbt"><div class="mbf" id="pb-n" style="width:0%;background:var(--green)"></div></div><div class="mbv" id="pv-n">0</div></div>
+              <div style="height:1px;background:var(--border);margin:10px 0"></div>
+              <div style="display:flex;justify-content:space-between;font-size:11px;padding:4px 0"><span style="color:var(--text2)">Total dispatched</span><span id="tot-d" style="font-family:var(--mono);font-weight:600">0</span></div>
+              <div style="display:flex;justify-content:space-between;font-size:11px;padding:4px 0"><span style="color:var(--text2)">Success rate</span><span id="rate-d" style="font-family:var(--mono);font-weight:600;color:var(--green)">100%</span></div>
+              <div style="display:flex;justify-content:space-between;font-size:11px;padding:4px 0"><span style="color:var(--text2)">Avg response</span><span id="rt-d" style="font-family:var(--mono);font-weight:600">—ms</span></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- QUEUE -->
+      <div class="view" id="view-queue">
+        <div class="card">
+          <div class="ct">📋 Allocation History</div>
+          <table>
+            <thead><tr><th>ID</th><th>Priority</th><th>Type</th><th>Ambulance</th><th>Hospital</th><th>District</th><th>ETA</th><th>ms</th></tr></thead>
+            <tbody id="queue-tb"><tr><td colspan="8" style="color:var(--text3);text-align:center;padding:16px">No allocations yet</td></tr></tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- AUDIT -->
+      <div class="view" id="view-aud">
+        <div class="card">
+          <div class="ct">🧾 Dispatch Audit Trail</div>
+          <div id="aud-list"><div style="color:var(--text3);text-align:center;padding:22px;font-size:10px">No entries yet.</div></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="rp">
+      <div class="rp-section"><div class="rpl">🔔 Live Notifications</div><div id="notif-list"></div></div>
+      <div class="rp-section">
+        <div class="rpl">⚡ Last Response</div>
+        <div style="font-family:var(--mono);font-size:28px;font-weight:600;color:var(--green);text-align:center;margin:4px 0 2px" id="rp-rt">—ms</div>
+        <div style="font-size:9px;color:var(--text2);text-align:center">Last allocation</div>
+      </div>
+      <div class="rp-section"><div class="rpl">📍 GPS Location</div><div id="rp-loc" style="font-family:var(--mono);font-size:10px;color:var(--teal)">Not captured</div></div>
+      <div class="rp-section"><div class="rpl">🤖 AI Top Pick</div><div id="rp-ai"><div style="font-size:10px;color:var(--text3)">Awaiting emergency…</div></div></div>
+    </div>
+  </div>
+</div>
+<div class="toast" id="toast"><div class="tt" id="tt"></div><div class="tm" id="tm"></div></div>
+
+<script>
+const role = sessionStorage.getItem('eras_role') || 'dispatcher';
+const user = sessionStorage.getItem('eras_user') || 'dispatcher';
+if (!sessionStorage.getItem('eras_user')) location.href = '../index.html';
+
+applyHeaderBadge(role, user);
+buildRegList('');
+startUptime();
+populateDistrictSelect('eregion');
+addNotif('ngreen','✅','Dispatcher online','Ready to receive emergencies');
+addLog('LOGIN',`Dispatcher <strong>${user}</strong> logged in<div class="anode">Role: Dispatcher | Restricted access</div>`);
+
+let emCount=1, allocations=[], totalE=0, totalAlloc=0, totalMs=0;
+
+function captureGPS(){
+  getLocation(txt=>{
+    document.getElementById('loc-bar').style.display='flex';
+    document.getElementById('loc-val').textContent=txt;
+    document.getElementById('rp-loc').textContent=txt;
+    addNotif('nblue','📍','GPS captured',txt);
+  });
+}
+
+function createEmergency(){
+  const id=document.getElementById('eid').value||'E-001';
+  const pri=document.getElementById('epri').value;
+  const typ=document.getElementById('etype').value;
+  const reg=document.getElementById('eregion').value;
+  totalE++; emCount++; STATE.priCounts[pri]++;
+  const res=smartAllocate(id,pri,typ,reg);
+  totalMs+=res.ms;
+
+  if(res.ok){
+    totalAlloc++;
+    allocations.unshift({id,pri,typ,amb:res.ambulance.id,hosp:res.hospital.name,reg,eta:res.etaMin,ms:res.ms});
+    document.getElementById('em-result').style.display='';
+    document.getElementById('em-result').innerHTML=`<div class="ar-ok">
+      <div style="font-size:11px;font-weight:700;color:var(--green);margin-bottom:10px">✅ Dispatched Successfully</div>
+      <div class="arow"><span class="ak">Emergency ID</span><span class="av">${id}</span></div>
+      <div class="arow"><span class="ak">Priority</span><span class="av"><span class="badge b${pri[0].toLowerCase()}">${pri}</span></span></div>
+      <div class="arow"><span class="ak">Ambulance dispatched</span><span class="av">${res.ambulance.id} (${res.dkm}km away)</span></div>
+      <div class="arow"><span class="ak">ETA to scene</span><span class="av" style="color:var(--teal)">~${res.etaMin} minutes</span></div>
+      <div class="arow"><span class="ak">Hospital assigned</span><span class="av">${res.hospital.name}</span></div>
+      <div class="arow"><span class="ak">District</span><span class="av">${REGIONS[res.hospital.region]?.name}${res.xRegion?' ✦ Cross-district':''}</span></div>
+      <div class="arow"><span class="ak">Node handled</span><span class="av">${res.node}</span></div>
+      <div class="arow"><span class="ak">Response time</span><span class="av" style="color:var(--green)">${res.ms}ms</span></div>
+    </div>`;
+    addLog('ALLOCATION',`<strong>${id}</strong> [${pri}] dispatched → ${res.ambulance.id} + ${res.hospital.name}<div class="anode">Dispatcher: ${user} | ${res.node}</div>`);
+    addNotif('ngreen','🚑',`${id} dispatched`,`→ ${res.hospital.name} | ETA ${res.etaMin}min`);
+    toast('ts',`${id} dispatched`,`ETA ${res.etaMin}min`);
+    document.getElementById('rp-rt').textContent=res.ms+'ms';
+    document.getElementById('rp-ai').innerHTML=`<div style="font-size:10px;font-weight:700">${res.hospital.name}</div><div style="font-size:9px;color:var(--teal)">ETA ~${res.etaMin}min</div>`;
+    if(res.ai&&res.ai.length){
+      document.getElementById('ai-box').innerHTML=`<div style="font-size:8px;color:var(--text3);font-family:var(--mono);margin-bottom:8px">AI RANKING</div>`+res.ai.map((h,i)=>`<div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid var(--border);font-size:10px"><div><div style="font-weight:700">${i===0?'⭐ ':''}${h.name}</div><div style="font-size:9px;color:var(--teal)">ETA ~${res.etaMin+(i*3)}min</div></div><div style="font-family:var(--mono);font-size:10px;color:${i===0?'var(--green)':'var(--text2)'}">${Math.round(Math.max(0,h.score))}</div></div>`).join('');
+    }
+    triggerSync(reg); updateRegCard(reg);
+    document.getElementById('eid').value='E-'+String(emCount).padStart(3,'0');
+  } else {
+    document.getElementById('em-result').style.display='';
+    document.getElementById('em-result').innerHTML=`<div class="ar-er"><div style="color:var(--red);font-weight:700;margin-bottom:5px">❌ Dispatch Failed</div><div style="font-size:10px;color:var(--text2)">${res.reason}</div></div>`;
+    toast('te','Dispatch failed',res.reason);
+    addNotif('nred','⚠️','Dispatch failed',res.reason.slice(0,50));
+  }
+
+  updateStats();
+  const tb=document.getElementById('queue-tb');
+  tb.innerHTML=allocations.slice(0,10).map(a=>`<tr><td style="font-family:var(--mono);font-size:9px">${a.id}</td><td><span class="badge b${a.pri[0].toLowerCase()}">${a.pri}</span></td><td style="font-size:9px">${a.typ}</td><td style="font-size:9px">${a.amb}</td><td style="font-size:9px;color:var(--text2)">${a.hosp.slice(0,18)}</td><td style="font-size:9px;color:var(--text2)">${REGIONS[a.reg]?.name||a.reg}</td><td style="font-family:var(--mono);font-size:9px;color:var(--teal)">${a.eta}min</td><td style="font-family:var(--mono);font-size:9px;color:var(--green)">${a.ms}ms</td></tr>`).join('');
+}
+
+function updateStats(){
+  const maxP=Math.max(1,...Object.values(STATE.priCounts));
+  [['c','CRITICAL'],['h','HIGH'],['n','NORMAL']].forEach(([x,p])=>{const v=STATE.priCounts[p];document.getElementById('pb-'+x).style.width=(v/maxP*100)+'%';document.getElementById('pv-'+x).textContent=v;});
+  document.getElementById('tot-d').textContent=totalE;
+  document.getElementById('rate-d').textContent=(totalE>0?Math.round(totalAlloc/totalE*100):100)+'%';
+  document.getElementById('rt-d').textContent=(totalAlloc>0?Math.round(totalMs/totalAlloc):'—')+'ms';
+}
+</script>
+</body>
+</html>

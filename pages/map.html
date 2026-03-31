@@ -1,0 +1,378 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>ERAS v4.0 — Map View</title>
+<script src="../js/data.js"></script>
+<style>
+*{box-sizing:border-box;margin:0;padding:0;}
+html,body{height:100%;background:#07090f;color:#dde6f0;font-family:'Segoe UI',sans-serif;overflow:hidden;}
+.bar{height:44px;display:flex;align-items:center;justify-content:space-between;padding:0 14px;background:#0d1120;border-bottom:1px solid rgba(99,179,237,0.15);flex-shrink:0;}
+.bar-l{display:flex;align-items:center;gap:10px;}
+.ico{width:26px;height:26px;border-radius:6px;background:linear-gradient(135deg,#ff4560,#ff7f40);display:flex;align-items:center;justify-content:center;font-size:13px;}
+.tit{font-size:13px;font-weight:700;}
+.sub{font-size:9px;color:#6b7a90;font-family:monospace;}
+.back{font-family:monospace;font-size:10px;padding:5px 11px;border-radius:6px;border:1px solid rgba(99,179,237,0.22);background:rgba(59,130,246,0.1);color:#3b82f6;cursor:pointer;text-decoration:none;}
+.wrap{display:flex;height:calc(100vh - 44px);}
+.lpanel{width:185px;flex-shrink:0;background:#0d1120;border-right:1px solid rgba(99,179,237,0.1);display:flex;flex-direction:column;overflow:hidden;}
+.lph{padding:8px 11px;font-size:9px;font-family:monospace;color:#6b7a90;letter-spacing:.1em;text-transform:uppercase;border-bottom:1px solid rgba(99,179,237,0.08);}
+.lps{padding:6px;border-bottom:1px solid rgba(99,179,237,0.06);}
+.lps input{width:100%;background:#121a2e;border:1px solid rgba(99,179,237,0.14);color:#dde6f0;border-radius:6px;padding:5px 8px;font-size:11px;}
+.lps input:focus{outline:none;border-color:#3b82f6;}
+.lpl{flex:1;overflow-y:auto;}
+.li{display:flex;align-items:center;gap:6px;padding:6px 10px;cursor:pointer;border-bottom:1px solid rgba(99,179,237,0.04);font-size:11px;transition:background .12s;}
+.li:hover{background:rgba(59,130,246,0.09);}
+.li.act{background:rgba(59,130,246,0.15);}
+.ldot{width:7px;height:7px;border-radius:50%;flex-shrink:0;}
+.lname{font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.lstat{font-size:9px;color:#6b7a90;font-family:monospace;}
+.mwrap{flex:1;position:relative;overflow:hidden;background:#07090f;}
+canvas{display:block;}
+#tip{position:absolute;display:none;background:#0d1120;border:1px solid rgba(99,179,237,0.28);border-radius:9px;padding:10px 13px;font-size:11px;line-height:1.9;pointer-events:none;box-shadow:0 8px 24px rgba(0,0,0,.85);min-width:165px;z-index:50;}
+.rpanel{width:195px;flex-shrink:0;background:#0d1120;border-left:1px solid rgba(99,179,237,0.1);padding:12px;overflow-y:auto;display:flex;flex-direction:column;gap:11px;}
+.rl{font-family:monospace;font-size:9px;color:#2d3a50;letter-spacing:.12em;text-transform:uppercase;margin-bottom:6px;}
+.sb{background:#121a2e;border:1px solid rgba(99,179,237,0.1);border-radius:8px;padding:8px 11px;margin-bottom:6px;}
+.sb .v{font-family:monospace;font-size:19px;font-weight:700;margin-bottom:1px;}
+.sb .l{color:#6b7a90;font-size:9px;text-transform:uppercase;letter-spacing:.06em;}
+.leg{display:flex;align-items:center;gap:7px;padding:3px 0;font-size:11px;color:#6b7a90;}
+.ld{width:8px;height:8px;border-radius:50%;flex-shrink:0;}
+.fb{width:100%;text-align:left;background:#121a2e;border:1px solid rgba(99,179,237,0.1);color:#6b7a90;border-radius:7px;padding:6px 9px;font-size:10px;font-family:monospace;cursor:pointer;transition:all .14s;margin-bottom:4px;}
+.fb:hover{border-color:#3b82f6;color:#3b82f6;}
+.fb.on{border-color:#10d9a0;color:#10d9a0;background:rgba(16,217,160,0.07);}
+.sc{background:#121a2e;border:1px solid rgba(99,179,237,0.12);border-radius:8px;padding:10px;font-size:10px;display:none;}
+.sc.show{display:block;}
+.sn{font-size:12px;font-weight:700;margin-bottom:7px;color:#dde6f0;}
+.sr{display:flex;justify-content:space-between;padding:3px 0;border-bottom:1px solid rgba(99,179,237,0.05);}
+.sk{color:#6b7a90;}.sv{font-family:monospace;font-weight:600;}
+.zbtn{position:absolute;bottom:12px;right:12px;display:flex;flex-direction:column;gap:4px;z-index:20;}
+.zb{width:30px;height:30px;background:#0d1120;border:1px solid rgba(99,179,237,0.2);color:#dde6f0;border-radius:7px;cursor:pointer;font-size:15px;display:flex;align-items:center;justify-content:center;}
+.zb:hover{background:#121a2e;border-color:#3b82f6;}
+.hint{position:absolute;bottom:12px;left:12px;font-size:9px;color:#2d3a50;font-family:monospace;z-index:20;}
+::-webkit-scrollbar{width:3px;}
+::-webkit-scrollbar-thumb{background:rgba(99,179,237,0.18);border-radius:2px;}
+</style>
+</head>
+<body>
+<div class="bar">
+  <div class="bar-l">
+    <div class="ico">🗺️</div>
+    <div><div class="tit">ERAS v4.0 — District Map</div><div class="sub">38 DISTRICTS · TAMIL NADU · HOVER &amp; CLICK</div></div>
+  </div>
+  <a class="back" onclick="history.back()">← Back</a>
+</div>
+<div class="wrap">
+  <div class="lpanel">
+    <div class="lph">🌍 38 Districts</div>
+    <div class="lps"><input id="ds" placeholder="Search district…" oninput="buildList(this.value)"/></div>
+    <div class="lpl" id="lpl"></div>
+  </div>
+  <div class="mwrap" id="mwrap">
+    <canvas id="cv"></canvas>
+    <div id="tip"></div>
+    <div class="zbtn">
+      <button class="zb" onclick="doZoom(1.25)" title="Zoom in">+</button>
+      <button class="zb" onclick="doZoom(0.8)" title="Zoom out">−</button>
+      <button class="zb" onclick="resetV()" title="Reset view" style="font-size:11px">⊙</button>
+    </div>
+    <div class="hint">Scroll=zoom · Drag=pan · Click=select</div>
+  </div>
+  <div class="rpanel">
+    <div>
+      <div class="rl">System stats</div>
+      <div class="sb"><div class="v" id="s1" style="color:#10d9a0">—</div><div class="l">Online nodes</div></div>
+      <div class="sb"><div class="v" id="s2" style="color:#3b82f6">—</div><div class="l">Ambulances</div></div>
+      <div class="sb"><div class="v" id="s3" style="color:#22d3ee">—</div><div class="l">Beds available</div></div>
+      <div class="sb"><div class="v" id="s4" style="color:#a78bfa">—</div><div class="l">ICU slots</div></div>
+    </div>
+    <div>
+      <div class="rl">Legend</div>
+      <div class="leg"><div class="ld" style="background:#10d9a0"></div>ONLINE district</div>
+      <div class="leg"><div class="ld" style="background:#fbbf24"></div>LOW RESOURCE</div>
+      <div class="leg"><div class="ld" style="background:#ff4560"></div>FAILED node</div>
+    </div>
+    <div>
+      <div class="rl">Filter</div>
+      <button class="fb on" onclick="setF('all',this)">🌍 All districts</button>
+      <button class="fb" onclick="setF('online',this)">🟢 Online only</button>
+      <button class="fb" onclick="setF('low',this)">🟡 Low resource</button>
+      <button class="fb" onclick="setF('hosp',this)">🏥 Show hospitals</button>
+    </div>
+    <div>
+      <div class="rl">Selected</div>
+      <div class="sc" id="sc">
+        <div class="sn" id="sn">—</div>
+        <div class="sr"><span class="sk">Status</span><span class="sv" id="ss">—</span></div>
+        <div class="sr"><span class="sk">🚑 Ambulances</span><span class="sv" id="sa">—</span></div>
+        <div class="sr"><span class="sk">🏥 Beds</span><span class="sv" id="sb2">—</span></div>
+        <div class="sr"><span class="sk">❤️ ICU</span><span class="sv" id="si">—</span></div>
+        <div class="sr" style="border:none"><span class="sk">Hospitals</span><span class="sv" id="sh">—</span></div>
+      </div>
+    </div>
+  </div>
+</div>
+<script>
+// ── Build data ────────────────────────────────────
+const BIG=['chennai','coimbatore','madurai','tiruchirappalli','salem','vellore','tirunelveli'];
+const RG={};
+DISTRICTS.forEach(d=>{
+  const lo=d.status==='LOW RES';
+  const b=BIG.includes(d.id)?5:lo?1:Math.floor(Math.random()*2)+2;
+  RG[d.id]={...d,ambulances:b*2,maxAmbu:b*2,beds:b*12,maxBeds:b*12,icu:lo?0:b*2,maxIcu:lo?2:b*2};
+});
+const HS=[];
+DISTRICTS.forEach((d,i)=>{
+  const big=BIG.includes(d.id),beds=big?80+~~(Math.random()*40):20+~~(Math.random()*20);
+  HS.push({region:d.id,beds,icu:~~(beds/10)});
+  if(big) HS.push({region:d.id,beds:40+~~(Math.random()*20),icu:4+~~(Math.random()*3)});
+});
+
+// Stats
+const onN=DISTRICTS.filter(d=>RG[d.id].status==='ONLINE').length;
+const totA=Object.values(RG).reduce((s,r)=>s+r.ambulances,0);
+const totB=HS.reduce((s,h)=>s+h.beds,0);
+const totI=HS.reduce((s,h)=>s+h.icu,0);
+document.getElementById('s1').textContent=onN+'/38';
+document.getElementById('s2').textContent=totA;
+document.getElementById('s3').textContent=totB;
+document.getElementById('s4').textContent=totI;
+
+// ── Canvas setup ──────────────────────────────────
+const cv=document.getElementById('cv');
+const cx=cv.getContext('2d');
+const tip=document.getElementById('tip');
+let W,H;
+
+// Tamil Nadu lat/lng bounds
+const LAT_MIN=7.7, LAT_MAX=13.75, LNG_MIN=76.1, LNG_MAX=80.7;
+const LAT_RANGE=LAT_MAX-LAT_MIN, LNG_RANGE=LNG_MAX-LNG_MIN;
+
+// pan/zoom in screen-pixel space
+let panX=0, panY=0, scale=1;
+let dragging=false, dragX=0, dragY=0, startPanX=0, startPanY=0;
+let hovId=null, selId=null, filt='all', showH=false;
+
+// Convert lat/lng to canvas pixel (before pan/zoom)
+function latLngToBase(lat,lng){
+  const x=((lng-LNG_MIN)/LNG_RANGE)*W;
+  const y=((LAT_MAX-lat)/LAT_RANGE)*H;
+  return [x,y];
+}
+// Apply current pan+scale centered on canvas
+function toScreen(lat,lng){
+  const [bx,by]=latLngToBase(lat,lng);
+  const sx=(bx-W/2)*scale+W/2+panX;
+  const sy=(by-H/2)*scale+H/2+panY;
+  return [sx,sy];
+}
+// Radius of district circle
+function nr(d){return BIG.includes(d.id)?13*Math.max(1,scale*.6):9*Math.max(1,scale*.6);}
+// Color of district
+function ncol(d){
+  const s=RG[d.id].status;
+  return s==='FAILED'?'#ff4560':s==='LOW RES'?'#fbbf24':'#10d9a0';
+}
+function vis(d){
+  if(filt==='online') return RG[d.id].status==='ONLINE';
+  if(filt==='low')    return RG[d.id].status==='LOW RES';
+  return true;
+}
+
+function draw(){
+  cx.clearRect(0,0,W,H);
+
+  // background grid
+  cx.strokeStyle='rgba(99,179,237,0.03)';cx.lineWidth=1;
+  for(let i=0;i<=10;i++){
+    cx.beginPath();cx.moveTo(W/10*i,0);cx.lineTo(W/10*i,H);cx.stroke();
+    cx.beginPath();cx.moveTo(0,H/10*i);cx.lineTo(W,H/10*i);cx.stroke();
+  }
+
+  // TN border box hint
+  cx.setLineDash([5,4]);cx.strokeStyle='rgba(59,130,246,0.09)';cx.lineWidth=1.5;
+  const corners=[[LAT_MIN,LNG_MIN],[LAT_MIN,LNG_MAX],[LAT_MAX,LNG_MAX],[LAT_MAX,LNG_MIN]];
+  cx.beginPath();
+  corners.forEach(([lt,ln],i)=>{const[x,y]=toScreen(lt,ln);i?cx.lineTo(x,y):cx.moveTo(x,y);});
+  cx.closePath();cx.stroke();cx.setLineDash([]);
+
+  // Hospital markers
+  if(showH){
+    cx.font='14px serif';cx.textAlign='center';cx.textBaseline='middle';
+    HS.forEach(h=>{
+      const d=DISTRICTS.find(x=>x.id===h.region);if(!d)return;
+      const[x,y]=toScreen(d.lat+(Math.random()-.5)*.06,d.lng+(Math.random()-.5)*.06);
+      cx.fillText('🏥',x,y);
+    });
+  }
+
+  // District circles
+  DISTRICTS.forEach(d=>{
+    if(!vis(d))return;
+    const[x,y]=toScreen(d.lat,d.lng);
+    const r=nr(d);
+    const col=ncol(d);
+    const isH=hovId===d.id, isS=selId===d.id;
+
+    // Outer glow
+    const gr=cx.createRadialGradient(x,y,r*.3,x,y,r*(isH||isS?2.2:1.7));
+    gr.addColorStop(0,col+'55');gr.addColorStop(1,col+'00');
+    cx.beginPath();cx.arc(x,y,r*(isH||isS?2.2:1.7),0,Math.PI*2);
+    cx.fillStyle=gr;cx.fill();
+
+    // Main circle
+    cx.beginPath();cx.arc(x,y,isH||isS?r+2:r,0,Math.PI*2);
+    cx.fillStyle=col;cx.fill();
+    cx.strokeStyle=isS?'#ffffff':isH?'rgba(255,255,255,0.7)':'rgba(255,255,255,0.22)';
+    cx.lineWidth=isS?2.5:1.5;cx.stroke();
+
+    // Label
+    if(BIG.includes(d.id)||isH||isS){
+      cx.font=`${BIG.includes(d.id)?'600':'500'} ${scale>1.5?11:10}px Segoe UI`;
+      cx.textAlign='center';cx.textBaseline='top';
+      cx.fillStyle='rgba(0,0,0,0.6)';cx.fillText(d.name,x+1,y+r+3);
+      cx.fillStyle=isH||isS?'#ffffff':'rgba(221,230,240,0.88)';cx.fillText(d.name,x,y+r+2);
+    }
+
+    // Ambulance badge for major cities
+    if(BIG.includes(d.id)&&filt!=='low'){
+      const cnt=RG[d.id].ambulances;
+      const bx=x+r+1,by=y-r-1;
+      cx.beginPath();cx.arc(bx,by,8,0,Math.PI*2);
+      cx.fillStyle='#1d4ed8';cx.fill();
+      cx.strokeStyle='#07090f';cx.lineWidth=1.5;cx.stroke();
+      cx.font='bold 8px Segoe UI';cx.textAlign='center';cx.textBaseline='middle';
+      cx.fillStyle='#fff';cx.fillText(cnt,bx,by);
+    }
+  });
+}
+
+// ── Resize ────────────────────────────────────────
+function resize(){
+  const wrap=document.getElementById('mwrap');
+  W=wrap.clientWidth;H=wrap.clientHeight;
+  cv.width=W;cv.height=H;
+  cv.style.width=W+'px';cv.style.height=H+'px';
+  draw();
+}
+window.addEventListener('resize',resize);
+
+// ── Mouse events ──────────────────────────────────
+function getHit(mx,my){
+  for(const d of DISTRICTS){
+    if(!vis(d))continue;
+    const[x,y]=toScreen(d.lat,d.lng);
+    const r=nr(d)+6;
+    if((mx-x)**2+(my-y)**2<=r*r)return d;
+  }
+  return null;
+}
+
+cv.addEventListener('mousemove',e=>{
+  const r=cv.getBoundingClientRect();
+  const mx=e.clientX-r.left, my=e.clientY-r.top;
+  if(dragging){
+    panX=startPanX+(mx-dragX);
+    panY=startPanY+(my-dragY);
+    draw();return;
+  }
+  const h=getHit(mx,my);
+  hovId=h?h.id:null;
+  cv.style.cursor=h?'pointer':'grab';
+  if(h){
+    const rg=RG[h.id];
+    const sc={'ONLINE':'color:#10d9a0','LOW RES':'color:#fbbf24','FAILED':'color:#ff4560'}[rg.status]||'';
+    const hc=HS.filter(x=>x.region===h.id).length;
+    tip.innerHTML=`<b>${h.name} District</b><br/><span style="${sc}">${rg.status}</span><br/>🚑 ${rg.ambulances}/${rg.maxAmbu} ambulances<br/>🏥 ${rg.beds}/${rg.maxBeds} beds<br/>❤️ ${rg.icu}/${rg.maxIcu} ICU<br/>Hospitals: ${hc}`;
+    const tx=Math.min(mx+15,W-185), ty=Math.max(my-95,8);
+    tip.style.left=tx+'px';tip.style.top=ty+'px';
+    tip.style.display='block';
+  }else tip.style.display='none';
+  draw();
+});
+
+cv.addEventListener('mouseleave',()=>{hovId=null;tip.style.display='none';draw();});
+
+cv.addEventListener('mousedown',e=>{
+  const r=cv.getBoundingClientRect();
+  dragging=true;
+  dragX=e.clientX-r.left; dragY=e.clientY-r.top;
+  startPanX=panX; startPanY=panY;
+  cv.style.cursor='grabbing';
+});
+cv.addEventListener('mouseup',()=>{dragging=false;cv.style.cursor='grab';});
+
+cv.addEventListener('click',e=>{
+  if(Math.abs(panX-startPanX)>4||Math.abs(panY-startPanY)>4)return; // was a drag
+  const r=cv.getBoundingClientRect();
+  const h=getHit(e.clientX-r.left,e.clientY-r.top);
+  if(h)selDist(h.id);
+});
+
+cv.addEventListener('wheel',e=>{
+  e.preventDefault();
+  const r=cv.getBoundingClientRect();
+  const mx=e.clientX-r.left, my=e.clientY-r.top;
+  const factor=e.deltaY<0?1.15:0.87;
+  // Zoom toward mouse position
+  panX=(panX-mx)*factor+mx;
+  panY=(panY-my)*factor+my;
+  scale=Math.max(0.4,Math.min(6,scale*factor));
+  draw();
+},{passive:false});
+
+function doZoom(f){scale=Math.max(0.4,Math.min(6,scale*f));draw();}
+function resetV(){scale=1;panX=0;panY=0;draw();}
+
+// ── Select district ───────────────────────────────
+function selDist(id){
+  selId=id;
+  const d=DISTRICTS.find(x=>x.id===id);
+  const rg=RG[id];
+  const hc=HS.filter(x=>x.region===id).length;
+  document.getElementById('sc').classList.add('show');
+  document.getElementById('sn').textContent=d.name+' District';
+  const ss=document.getElementById('ss');
+  ss.textContent=rg.status;
+  ss.style.color={'ONLINE':'#10d9a0','LOW RES':'#fbbf24','FAILED':'#ff4560'}[rg.status]||'#dde6f0';
+  document.getElementById('sa').textContent=rg.ambulances+'/'+rg.maxAmbu;
+  document.getElementById('sb2').textContent=rg.beds+'/'+rg.maxBeds;
+  document.getElementById('si').textContent=rg.icu+'/'+rg.maxIcu;
+  document.getElementById('sh').textContent=hc;
+  document.querySelectorAll('.li').forEach(x=>x.classList.remove('act'));
+  document.getElementById('li-'+id)?.classList.add('act');
+  document.getElementById('li-'+id)?.scrollIntoView({block:'nearest'});
+  draw();
+}
+
+// ── District list ─────────────────────────────────
+function buildList(q){
+  const ul=document.getElementById('lpl');
+  const filtered=DISTRICTS.filter(d=>!q||d.name.toLowerCase().includes(q.toLowerCase()));
+  ul.innerHTML=filtered.map(d=>{
+    const rg=RG[d.id];
+    const col={'ONLINE':'#10d9a0','LOW RES':'#fbbf24','FAILED':'#ff4560'}[rg.status];
+    return`<div class="li" id="li-${d.id}" onclick="selDist('${d.id}')">
+      <div class="ldot" style="background:${col}"></div>
+      <div style="min-width:0">
+        <div class="lname">${d.name}</div>
+        <div class="lstat">🚑${rg.ambulances} 🏥${rg.beds} ❤️${rg.icu}</div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+// ── Filter ────────────────────────────────────────
+function setF(f,btn){
+  filt=f;showH=(f==='hosp');
+  document.querySelectorAll('.fb').forEach(b=>b.classList.remove('on'));
+  btn.classList.add('on');
+  draw();
+}
+
+// ── Init ─────────────────────────────────────────
+buildList('');
+// Slight delay so layout is complete before measuring
+setTimeout(()=>{ resize(); }, 50);
+</script>
+</body>
+</html>

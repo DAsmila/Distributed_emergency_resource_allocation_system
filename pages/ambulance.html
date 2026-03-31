@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/><meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>ERAS v4.0 — Ambulance Driver</title>
+<link rel="stylesheet" href="../css/style.css"/>
+<script src="../js/data.js"></script>
+<script src="../js/ui.js"></script>
+</head>
+<body class="role-ambulance">
+<div class="app">
+  <div class="hdr">
+    <div style="display:flex;align-items:center;gap:14px">
+      <div class="h-ico">🚑</div>
+      <div><div class="h-title">ERAS v4.0 — Ambulance Driver</div><div class="h-ver">AVAILABILITY &amp; ASSIGNMENT MANAGEMENT · TAMIL NADU</div></div>
+    </div>
+    <div class="htabs">
+      <a class="htab on" data-view="status" onclick="showView('status')">🚑 My Status</a>
+      <a class="htab" data-view="assignments" onclick="showView('assignments')">📋 Assignments</a>
+      <a class="htab" data-view="aud" onclick="showView('aud')">🧾 Log</a>
+    </div>
+    <div style="display:flex;align-items:center;gap:10px">
+      <div class="sync-chip"><div class="sdot"></div><span id="sync-lbl">SYNCED</span></div>
+      <div class="uptime-chip">⏱ <span id="uptime">00:00:00</span></div>
+      <div class="rbadge" id="rbadge"></div>
+      <div class="uname" id="uname"></div>
+      <button class="lo-btn" onclick="location.href='../index.html'">LOGOUT</button>
+    </div>
+  </div>
+
+  <div style="display:grid;grid-template-columns:220px 1fr 240px;flex:1;overflow:hidden;">
+    <div class="sb">
+      <div class="sbl">Navigation</div>
+      <a class="sbi on" data-view="status" onclick="showView('status')">🚑 My Status</a>
+      <a class="sbi" data-view="assignments" onclick="showView('assignments')">📋 Assignments</a>
+      <a class="sbi" data-view="aud" onclick="showView('aud')">🧾 Activity Log</a>
+      <div class="sbl" style="margin-top:12px">⚠️ Your Access</div>
+      <div style="background:var(--amber2);border:1px solid rgba(251,191,36,0.2);border-radius:8px;padding:10px;font-size:10px;color:var(--text2);line-height:1.7">
+        ✅ Update availability<br/>✅ Accept/complete jobs<br/>✅ Share live location<br/>✅ View assignments<br/>❌ Create emergencies<br/>❌ Manage resources
+      </div>
+      <div class="sbl" style="margin-top:12px">Select Your Unit</div>
+      <select class="fs" id="my-ambu" onchange="loadMyAmbu()" style="width:100%;font-size:10px"></select>
+    </div>
+
+    <div class="main">
+      <!-- STATUS -->
+      <div class="view on" id="view-status">
+        <!-- Big status card -->
+        <div class="card" id="ambu-banner" style="background:var(--bg3);border-color:var(--border2)">
+          <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px">
+            <div>
+              <div style="font-size:18px;font-weight:800;margin-bottom:4px" id="my-ambu-id">Select your unit</div>
+              <div style="font-size:10px;color:var(--text2)" id="my-ambu-dist">—</div>
+              <div style="font-size:10px;color:var(--text3);font-family:var(--mono);margin-top:2px" id="my-ambu-coords">Lat: — | Lng: —</div>
+            </div>
+            <div id="status-badge" style="font-family:var(--mono);font-size:14px;font-weight:700;padding:10px 20px;border-radius:10px;background:var(--green2);color:var(--green);border:1px solid rgba(16,217,160,0.3)">AVAILABLE</div>
+          </div>
+        </div>
+
+        <div class="two">
+          <div class="card">
+            <div class="ct">🔄 Update My Status</div>
+            <div class="fg" style="margin-bottom:12px">
+              <div class="fl">Availability</div>
+              <select class="fs" id="ambu-status">
+                <option value="free">🟢 Available — Ready for assignment</option>
+                <option value="busy">🔴 On Assignment — Currently deployed</option>
+                <option value="maintenance">🟡 Maintenance — Vehicle servicing</option>
+              </select>
+            </div>
+            <div class="fg" style="margin-bottom:12px">
+              <div class="fl">Current location note</div>
+              <input class="fi" id="ambu-note" placeholder="E.g. Near Salem bus stand"/>
+            </div>
+            <button class="btn bp" style="width:100%;margin-bottom:8px" onclick="updateMyStatus()">✅ Update Status</button>
+            <button class="btn bs" style="width:100%" onclick="shareLocation()">📍 Share Live Location</button>
+          </div>
+          <div class="card">
+            <div class="ct">📊 My Performance</div>
+            <div style="display:flex;flex-direction:column;gap:8px" id="perf-stats">
+              <div style="display:flex;justify-content:space-between;font-size:11px;padding:5px 0;border-bottom:1px solid var(--border)"><span style="color:var(--text2)">Total assignments</span><span id="perf-tot" style="font-family:var(--mono);font-weight:600">0</span></div>
+              <div style="display:flex;justify-content:space-between;font-size:11px;padding:5px 0;border-bottom:1px solid var(--border)"><span style="color:var(--text2)">Completed</span><span id="perf-done" style="font-family:var(--mono);font-weight:600;color:var(--green)">0</span></div>
+              <div style="display:flex;justify-content:space-between;font-size:11px;padding:5px 0;border-bottom:1px solid var(--border)"><span style="color:var(--text2)">Avg response time</span><span id="perf-rt" style="font-family:var(--mono);font-weight:600">—</span></div>
+              <div style="display:flex;justify-content:space-between;font-size:11px;padding:5px 0"><span style="color:var(--text2)">Current status</span><span id="perf-status" style="font-family:var(--mono);font-weight:600;color:var(--green)">AVAILABLE</span></div>
+            </div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="ct">🌍 District Availability Overview</div>
+          <table>
+            <thead><tr><th>District</th><th>Free Ambulances</th><th>Busy</th><th>Total</th><th>Coverage</th></tr></thead>
+            <tbody id="dist-ambu-tb"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- ASSIGNMENTS -->
+      <div class="view" id="view-assignments">
+        <div class="card">
+          <div class="ct">📋 My Assignments
+            <button class="btn bw btn-sm" onclick="simulateAssignment()">🔔 Simulate Assignment</button>
+          </div>
+          <div id="assignment-list">
+            <div style="color:var(--text3);font-size:10px;text-align:center;padding:22px">No assignments yet. Update your status to "Available" to receive assignments.</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- AUDIT/LOG -->
+      <div class="view" id="view-aud">
+        <div class="card">
+          <div class="ct">🧾 Activity Log</div>
+          <div id="aud-list"><div style="color:var(--text3);text-align:center;padding:22px;font-size:10px">No entries yet.</div></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="rp">
+      <div class="rp-section"><div class="rpl">🔔 Notifications</div><div id="notif-list"></div></div>
+      <div class="rp-section">
+        <div class="rpl">📍 My Location</div>
+        <div id="rp-loc" style="font-family:var(--mono);font-size:10px;color:var(--teal)">Not shared yet</div>
+      </div>
+      <div class="rp-section">
+        <div class="rpl">🔄 Sync</div>
+        <div class="audit-row"><div class="at" id="rt1">--:--</div><div class="atype tR">SYNC</div><div class="amsg">Status synced to all nodes</div></div>
+      </div>
+    </div>
+  </div>
+</div>
+<div class="toast" id="toast"><div class="tt" id="tt"></div><div class="tm" id="tm"></div></div>
+
+<script>
+const role = sessionStorage.getItem('eras_role') || 'ambulance';
+const user = sessionStorage.getItem('eras_user') || 'driver';
+if (!sessionStorage.getItem('eras_user')) location.href = '../index.html';
+
+applyHeaderBadge(role, user);
+startUptime();
+populateAmbuSelect('my-ambu');
+addNotif('ngreen','✅','Driver online','Unit ready for assignment');
+addLog('LOGIN',`Driver <strong>${user}</strong> logged in<div class="anode">Role: Ambulance Driver</div>`);
+
+let myAmbuId = AMBULANCES[0]?.id;
+let perfData = {tot:0,done:0,totalMs:0};
+
+function loadMyAmbu(){
+  myAmbuId=document.getElementById('my-ambu').value;
+  const a=AMBULANCES.find(x=>x.id===myAmbuId);
+  if(!a)return;
+  document.getElementById('my-ambu-id').textContent=a.id;
+  document.getElementById('my-ambu-dist').textContent='📍 '+REGIONS[a.region]?.name+' District';
+  document.getElementById('my-ambu-coords').textContent=`Lat: ${a.lat.toFixed(4)} | Lng: ${a.lng.toFixed(4)}`;
+  const badge=document.getElementById('status-badge');
+  if(a.status==='free'){badge.textContent='AVAILABLE';badge.style.background='var(--green2)';badge.style.color='var(--green)';badge.style.borderColor='rgba(16,217,160,0.3)';}
+  else{badge.textContent='ON ASSIGNMENT';badge.style.background='var(--red2)';badge.style.color='var(--red)';badge.style.borderColor='rgba(255,69,96,0.3)';}
+  renderDistAmbu();
+}
+
+function updateMyStatus(){
+  const s=document.getElementById('ambu-status').value;
+  const a=AMBULANCES.find(x=>x.id===myAmbuId);
+  if(!a){toast('tw','Select your unit first','');return;}
+  const prev=a.status;
+  a.status=s==='free'?'free':'busy';
+  if(s==='free'&&prev==='busy') REGIONS[a.region].ambulances=Math.min(REGIONS[a.region].ambulances+1,REGIONS[a.region].maxAmbu);
+  else if(s!=='free'&&prev==='free') REGIONS[a.region].ambulances=Math.max(0,REGIONS[a.region].ambulances-1);
+  addLog('RECOVERY',`${a.id} status → ${s}<div class="anode">Driver: ${user}</div>`);
+  addNotif('ngreen','🚑','Status updated','Unit: '+a.id+' → '+s.toUpperCase());
+  toast('ts','Status updated',a.id+' is now '+s);
+  document.getElementById('perf-status').textContent=s==='free'?'AVAILABLE':'ON ASSIGNMENT';
+  document.getElementById('perf-status').style.color=s==='free'?'var(--green)':'var(--red)';
+  triggerSync(a.region); updateRegCard(a.region); loadMyAmbu();
+}
+
+function shareLocation(){
+  getLocation(txt=>{
+    document.getElementById('rp-loc').textContent=txt;
+    addNotif('nblue','📍','Location shared',txt);
+    toast('ts','Location shared',txt);
+  });
+}
+
+function simulateAssignment(){
+  const d=DISTRICTS[Math.floor(Math.random()*DISTRICTS.length)];
+  const pris=['CRITICAL','HIGH','NORMAL'];
+  const types=['Road Accident','Cardiac Arrest','Fire Injury','Trauma'];
+  const pri=pris[Math.floor(Math.random()*pris.length)];
+  const typ=types[Math.floor(Math.random()*types.length)];
+  perfData.tot++;
+  const al=document.getElementById('assignment-list');
+  const div=document.createElement('div');
+  div.style.cssText='background:var(--bg2);border:1px solid var(--border);border-left:3px solid var(--amber);border-radius:8px;padding:12px;margin-bottom:10px;animation:nf 0.3s ease;';
+  div.innerHTML=`<div style="display:flex;justify-content:space-between;align-items:flex-start">
+    <div><div style="font-size:12px;font-weight:700;margin-bottom:4px">📋 Assignment #${perfData.tot}</div>
+    <div style="font-size:10px;color:var(--text2);margin-bottom:3px">Type: ${typ} | Priority: <span class="badge b${pri[0].toLowerCase()}">${pri}</span></div>
+    <div style="font-size:10px;color:var(--text2)">Location: ${d.name} district | ${nowT()}</div>
+    <div style="font-size:9px;color:var(--text3);margin-top:3px">Destination: ${HOSPITALS.find(h=>h.region===d.id)?.name||'Nearest Hospital'}</div></div>
+    <div style="display:flex;gap:6px;flex-shrink:0">
+      <button class="btn bs btn-sm" onclick="completeJob(this,${perfData.tot})">✅ Complete</button>
+      <button class="btn bd btn-sm" onclick="this.closest('[style]').style.opacity='0.4'">Skip</button>
+    </div>
+  </div>`;
+  al.insertBefore(div, al.firstChild.tagName==='DIV'?al.firstChild:null);
+  if(al.firstChild&&al.firstChild.style&&al.firstChild.style.textAlign){al.innerHTML='';al.appendChild(div);}else{al.insertBefore(div,al.firstChild);}
+  addNotif('namber','📋','New assignment','#'+perfData.tot+' — '+typ+' in '+d.name);
+  toast('tw','New assignment!',typ+' — '+pri+' priority');
+}
+
+function completeJob(btn,n){
+  const card=btn.closest('[style]');
+  card.style.borderLeftColor='var(--green)';
+  btn.parentElement.innerHTML='<span style="color:var(--green);font-size:10px;font-weight:700">✅ Completed</span>';
+  perfData.done++;
+  document.getElementById('perf-tot').textContent=perfData.tot;
+  document.getElementById('perf-done').textContent=perfData.done;
+  addNotif('ngreen','✅','Assignment #'+n+' completed','');
+  toast('ts','Job completed','Well done!');
+  addLog('RECOVERY',`Assignment #${n} completed by ${user}<div class="anode">Unit: ${myAmbuId}</div>`);
+}
+
+function renderDistAmbu(){
+  const byDist={};AMBULANCES.forEach(a=>{if(!byDist[a.region])byDist[a.region]={free:0,busy:0};a.status==='free'?byDist[a.region].free++:byDist[a.region].busy++;});
+  document.getElementById('dist-ambu-tb').innerHTML=DISTRICTS.slice(0,12).map(d=>{const b=byDist[d.id]||{free:0,busy:0};const tot=b.free+b.busy;const pct=tot?Math.round(b.free/tot*100):0;return`<tr><td style="font-size:10px;font-weight:600">${d.name}</td><td style="font-family:var(--mono);font-size:9px;color:var(--green)">${b.free}</td><td style="font-family:var(--mono);font-size:9px;color:var(--red)">${b.busy}</td><td style="font-family:var(--mono);font-size:9px">${tot}</td><td><span class="badge ${pct>50?'bf':'bb'}">${pct}% free</span></td></tr>`;}).join('');
+}
+
+loadMyAmbu();
+renderDistAmbu();
+</script>
+</body>
+</html>

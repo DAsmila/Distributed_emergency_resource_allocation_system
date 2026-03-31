@@ -1,0 +1,523 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/><meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>ERAS v4.0 — Admin Dashboard</title>
+<link rel="stylesheet" href="../css/style.css"/>
+<script src="../js/data.js"></script>
+<script src="../js/ui.js"></script>
+<style>
+.body-layout{grid-template-columns:230px 1fr 260px;}
+</style>
+</head>
+<body>
+<div class="app" id="app">
+  <!-- HEADER -->
+  <div class="hdr">
+    <div style="display:flex;align-items:center;gap:14px">
+      <div class="h-ico">🚑</div>
+      <div><div class="h-title">ERAS v4.0 — Admin Dashboard</div><div class="h-ver">FULL ACCESS · 38 DISTRICTS · TAMIL NADU</div></div>
+    </div>
+    <div class="htabs">
+      <a class="htab on" data-view="dash" onclick="showView('dash')">📊 Dashboard</a>
+      <a class="htab" data-view="emrg" onclick="showView('emrg')">🚨 Emergency</a>
+      <a class="htab" data-view="res"  onclick="showView('res')">🏥 Resources</a>
+      <a class="htab" href="map.html" target="_blank">🗺️ Map</a>
+      <a class="htab" data-view="sim"  onclick="showView('sim')">🧠 Simulation</a>
+      <a class="htab" data-view="aud"  onclick="showView('aud')">🧾 Audit</a>
+      <a class="htab" data-view="an"   onclick="showView('an')">📈 Analytics</a>
+    </div>
+    <div style="display:flex;align-items:center;gap:10px">
+      <div class="sync-chip"><div class="sdot"></div><span id="sync-lbl">SYNCED</span></div>
+      <div class="uptime-chip">⏱ <span id="uptime">00:00:00</span></div>
+      <div class="rbadge" id="rbadge"></div>
+      <div class="uname" id="uname"></div>
+      <button class="lo-btn" onclick="location.href='../index.html'">LOGOUT</button>
+    </div>
+  </div>
+
+  <div class="body-layout">
+    <!-- SIDEBAR -->
+    <div class="sb">
+      <div class="sbl">Navigation</div>
+      <a class="sbi on" data-view="dash" onclick="showView('dash')">📊 Dashboard</a>
+      <a class="sbi" data-view="emrg" onclick="showView('emrg')">🚨 New Emergency</a>
+      <a class="sbi" data-view="res"  onclick="showView('res')">🏥 Resources</a>
+      <a class="sbi" href="map.html" target="_blank">🗺️ Map View ↗</a>
+      <a class="sbi" data-view="sim"  onclick="showView('sim')">🧠 Simulation</a>
+      <a class="sbi" data-view="aud"  onclick="showView('aud')">🧾 Audit Trail</a>
+      <a class="sbi" data-view="an"   onclick="showView('an')">📈 Analytics</a>
+      <div class="sbl">Admin Actions</div>
+      <button class="btn bd" style="width:100%;margin-bottom:5px" onclick="doFail()">⚡ Fail a Node</button>
+      <button class="btn bw" style="width:100%;margin-bottom:5px" onclick="doBorrow()">🔄 Borrow Resources</button>
+      <button class="btn bs" style="width:100%;margin-bottom:12px" onclick="doRecover()">✅ Recover All</button>
+      <div class="sbl">🌍 38 Districts</div>
+      <div class="reg-search"><input placeholder="Search district…" oninput="buildRegList(this.value)"/></div>
+      <div class="reg-list" id="reg-list"></div>
+    </div>
+
+    <!-- MAIN -->
+    <div class="main">
+
+      <!-- DASHBOARD -->
+      <div class="view on" id="view-dash">
+        <div class="stats-row">
+          <div class="sc cb"><div class="sv" id="sv-tot">0</div><div class="sl">Emergencies</div><div class="ss" id="ss-today">Today: 0</div></div>
+          <div class="sc cg"><div class="sv" id="sv-rate">100%</div><div class="sl">Success rate</div><div class="ss" id="ss-alloc">Allocated: 0</div></div>
+          <div class="sc ca"><div class="sv" id="sv-rt">—ms</div><div class="sl">Avg response</div><div class="ss">Smart allocation</div></div>
+          <div class="sc cr"><div class="sv" id="sv-fn">0</div><div class="sl">Failed nodes</div><div class="ss" id="ss-an">Active: 38/38</div></div>
+          <div class="sc cp"><div class="sv" id="sv-borrow">0</div><div class="sl">Borrows</div><div class="ss">Cross-district</div></div>
+        </div>
+        <div class="two">
+          <div class="card">
+            <div class="ct">Recent allocations</div>
+            <table><thead><tr><th>ID</th><th>Priority</th><th>Ambulance</th><th>Hospital</th><th>District</th><th>ms</th></tr></thead>
+            <tbody id="alloc-tb"><tr><td colspan="6" style="color:var(--text3);text-align:center;padding:16px">No allocations yet</td></tr></tbody></table>
+          </div>
+          <div>
+            <div class="card">
+              <div class="ct">Priority distribution</div>
+              <div class="mbar"><div class="mbl">🔴 CRITICAL</div><div class="mbt"><div class="mbf" id="pb-c" style="width:0%;background:var(--red)"></div></div><div class="mbv" id="pv-c">0</div></div>
+              <div class="mbar"><div class="mbl">🟠 HIGH</div><div class="mbt"><div class="mbf" id="pb-h" style="width:0%;background:var(--amber)"></div></div><div class="mbv" id="pv-h">0</div></div>
+              <div class="mbar"><div class="mbl">🟢 NORMAL</div><div class="mbt"><div class="mbf" id="pb-n" style="width:0%;background:var(--green)"></div></div><div class="mbv" id="pv-n">0</div></div>
+            </div>
+            <div class="card">
+              <div class="ct">Resource utilisation</div>
+              <div class="mbar"><div class="mbl">🚑 Ambulance</div><div class="mbt"><div class="mbf" id="util-a" style="width:0%;background:var(--blue)"></div></div><div class="mbv" id="util-av">0%</div></div>
+              <div class="mbar"><div class="mbl">🏥 Beds</div><div class="mbt"><div class="mbf" id="util-b" style="width:0%;background:var(--teal)"></div></div><div class="mbv" id="util-bv">0%</div></div>
+              <div class="mbar"><div class="mbl">❤️ ICU</div><div class="mbt"><div class="mbf" id="util-i" style="width:0%;background:var(--purple)"></div></div><div class="mbv" id="util-iv">0%</div></div>
+            </div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="ct">⚡ Fault Tolerance &amp; Replication Events</div>
+          <div id="ft-ev-list"><div style="color:var(--text3);font-size:10px;text-align:center;padding:12px">No events — try "Fail a Node"</div></div>
+        </div>
+      </div>
+
+      <!-- EMERGENCY -->
+      <div class="view" id="view-emrg">
+        <div class="two">
+          <div>
+            <div class="card">
+              <div class="ct">🚨 Create Emergency Request</div>
+              <div id="loc-bar" class="loc-bar" style="display:none"><span class="loc-icon">📍</span><span style="flex:1;color:var(--text2)">Live location</span><span class="loc-val" id="loc-val" style="font-family:var(--mono);font-size:10px;color:var(--green)"></span></div>
+              <button class="btn bp" style="width:100%;margin-bottom:12px" onclick="captureLocation()">📍 Capture GPS Location</button>
+              <div class="fgrid">
+                <div class="fg"><div class="fl">Emergency ID</div><input class="fi" id="eid" value="E-001"/></div>
+                <div class="fg"><div class="fl">Priority</div><select class="fs" id="epri"><option value="CRITICAL">🔴 CRITICAL</option><option value="HIGH">🟠 HIGH</option><option value="NORMAL" selected>🟢 NORMAL</option></select></div>
+                <div class="fg"><div class="fl">Type</div><select class="fs" id="etype"><option value="accident">Road Accident</option><option value="cardiac">Cardiac Arrest</option><option value="fire">Fire Injury</option><option value="trauma">Trauma</option><option value="flood">Flood Emergency</option><option value="other">Other</option></select></div>
+                <div class="fg"><div class="fl">District</div><select class="fs" id="eregion"></select></div>
+              </div>
+              <button class="btn bp" style="width:100%" onclick="createEmergency()">🤖 Smart Allocate</button>
+            </div>
+            <div id="em-result" style="display:none"></div>
+          </div>
+          <div>
+            <div class="card"><div class="ct">🤖 AI Suggestion Engine</div><div id="ai-box"><div style="color:var(--text3);font-size:10px">Create an emergency to see AI-ranked hospitals.</div></div></div>
+            <div class="card">
+              <div class="ct">🔄 Replication Status</div>
+              <div class="audit-row"><div class="at" id="rt1">--:--</div><div class="atype tR">REPLICA</div><div class="amsg">Primary → all replicas synced<div class="anode">Consensus: 38/38 nodes</div></div></div>
+              <div class="audit-row"><div class="at" id="rt2">--:--</div><div class="atype tR">REPLICA</div><div class="amsg">Write-ahead log distributed<div class="anode">Lag: &lt;50ms</div></div></div>
+              <div class="audit-row"><div class="at" id="rt3">--:--</div><div class="atype tA">SYNC OK</div><div class="amsg">All replicas consistent<div class="anode">Protocol: Raft consensus</div></div></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- RESOURCES -->
+      <div class="view" id="view-res">
+        <div class="two">
+          <div class="card">
+            <div class="ct">🚑 Ambulances <button class="btn bs btn-sm" onclick="freeAllAmbu()">Free All</button></div>
+            <table><thead><tr><th>ID</th><th>District</th><th>Status</th><th>Load</th><th>Action</th></tr></thead><tbody id="ambu-tb"></tbody></table>
+          </div>
+          <div class="card">
+            <div class="ct">🏥 Hospitals</div>
+            <table><thead><tr><th>Name</th><th>District</th><th>Beds</th><th>ICU</th><th>AI Score</th></tr></thead><tbody id="hosp-tb"></tbody></table>
+          </div>
+        </div>
+      </div>
+
+      <!-- MAP -->
+      <!-- SIMULATION -->
+      <div class="view" id="view-sim">
+        <div class="card">
+          <div class="ct">🧠 What-if Simulation Engine <span style="font-size:9px;font-weight:400;color:var(--text2)">Deep copy — live data untouched</span></div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px">
+            <div class="sim-c" onclick="doSim('mass',this)"><div style="font-size:18px;margin-bottom:6px">💥</div><div style="font-size:11px;font-weight:700;margin-bottom:3px">Mass accident — 50 cases</div><div style="font-size:9px;color:var(--text2)">Parallel threads, all districts</div></div>
+            <div class="sim-c" onclick="doSim('hosp',this)"><div style="font-size:18px;margin-bottom:6px">🏥</div><div style="font-size:11px;font-weight:700;margin-bottom:3px">Hospital goes offline</div><div style="font-size:9px;color:var(--text2)">Auto reallocation test</div></div>
+            <div class="sim-c" onclick="doSim('low',this)"><div style="font-size:18px;margin-bottom:6px">📉</div><div style="font-size:11px;font-weight:700;margin-bottom:3px">Resource exhaustion</div><div style="font-size:9px;color:var(--text2)">Cross-district borrowing</div></div>
+            <div class="sim-c" onclick="doSim('peak',this)"><div style="font-size:18px;margin-bottom:6px">⏱️</div><div style="font-size:11px;font-weight:700;margin-bottom:3px">Peak hour — 20 cases</div><div style="font-size:9px;color:var(--text2)">Load balancing across nodes</div></div>
+          </div>
+          <div id="sim-result" style="display:none"></div>
+        </div>
+      </div>
+
+      <!-- AUDIT -->
+      <div class="view" id="view-aud">
+        <div class="card">
+          <div class="ct">🧾 Audit Trail
+            <div class="btn-row" style="margin:0">
+              <button class="btn bg2 btn-sm" onclick="renderAudit('ALL')">All</button>
+              <button class="btn bp btn-sm" onclick="renderAudit('ALLOCATION')">Alloc</button>
+              <button class="btn bd btn-sm" onclick="renderAudit('FAILOVER')">Failover</button>
+              <button class="btn bw btn-sm" onclick="renderAudit('BORROW')">Borrow</button>
+              <button class="btn bs btn-sm" onclick="renderAudit('RECOVERY')">Recovery</button>
+            </div>
+          </div>
+          <div id="aud-list"><div style="color:var(--text3);text-align:center;padding:22px;font-size:10px">No entries yet.</div></div>
+        </div>
+      </div>
+
+      <!-- ANALYTICS -->
+      <div class="view" id="view-an">
+        <div class="three" style="margin-bottom:14px">
+          <div class="sc cb"><div class="sv" id="an-tot" style="color:var(--blue)">0</div><div class="sl">Total emergencies</div></div>
+          <div class="sc cg"><div class="sv" id="an-best" style="color:var(--green)">—ms</div><div class="sl">Best response time</div></div>
+          <div class="sc ca"><div class="sv" id="an-suc" style="color:var(--amber)">100%</div><div class="sl">Success rate</div></div>
+        </div>
+        <div class="two">
+          <div class="card"><div class="ct">📈 Response Time Trend</div><div class="ch"><canvas id="ch-rt"></canvas></div></div>
+          <div class="card"><div class="ct">📊 Allocation Success %</div><div class="ch"><canvas id="ch-suc"></canvas></div></div>
+        </div>
+        <div class="two">
+          <div class="card"><div class="ct">🌐 District Utilisation (Top 10)</div><div class="ch"><canvas id="ch-reg"></canvas></div></div>
+          <div class="card"><div class="ct">⚡ Recovery Times (ms)</div><div class="ch"><canvas id="ch-rec"></canvas></div></div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- RIGHT PANEL -->
+    <div class="rp">
+      <div class="rp-section"><div class="rpl">🔔 Live Notifications</div><div id="notif-list"></div></div>
+      <div class="rp-section">
+        <div class="rpl">⚡ Response Time</div>
+        <div style="font-family:var(--mono);font-size:28px;font-weight:600;color:var(--green);text-align:center;margin:4px 0 2px" id="rp-rt">—ms</div>
+        <div style="font-size:9px;color:var(--text2);text-align:center">Last allocation</div>
+      </div>
+      <div class="rp-section"><div class="rpl">📍 GPS Location</div><div id="rp-loc" style="font-family:var(--mono);font-size:10px;color:var(--teal)">Not captured yet</div></div>
+      <div class="rp-section"><div class="rpl">🤖 AI Top Pick</div><div id="rp-ai"><div style="font-size:10px;color:var(--text3)">Awaiting emergency…</div></div></div>
+      <div class="rp-section"><div class="rpl">🔄 Borrow Events</div><div id="borrow-log"><div style="font-size:10px;color:var(--text3)">No borrows yet.</div></div></div>
+    </div>
+  </div>
+</div>
+<div class="toast" id="toast"><div class="tt" id="tt"></div><div class="tm" id="tm"></div></div>
+
+<script>
+// ── INIT ─────────────────────────────────────────────
+const role = sessionStorage.getItem('eras_role') || 'admin';
+const user = sessionStorage.getItem('eras_user') || 'admin';
+if (!sessionStorage.getItem('eras_user')) location.href = '../index.html';
+
+applyHeaderBadge(role, user);
+buildRegList('');
+startUptime();
+populateDistrictSelect('eregion');
+addLog('LOGIN',`<strong>${user}</strong> authenticated as Admin<div class="anode">Token: JWT-${Math.random().toString(36).substr(2,10).toUpperCase()}</div>`);
+try{ initCharts(); }catch(e){}
+updateDash();
+
+// ── SEED DEMO EVENTS ON LOAD ──────────────────────────
+// Replication status timestamps
+setTimeout(()=>{
+  const t = nowT();
+  ['rt1','rt2','rt3'].forEach(id=>{const el=document.getElementById(id);if(el)el.textContent=t;});
+}, 200);
+
+// Pre-populate fault tolerance panel with historical events
+setTimeout(()=>{
+  const ftEl = document.getElementById('ft-ev-list');
+  if (!ftEl) return;
+  const events = [
+    {type:'recover', district:'Salem',    backup:'Namakkal', recMs:312, time: minusMin(8)},
+    {type:'fail',    district:'Perambalur',backup:'Ariyalur', recMs:487, time: minusMin(5)},
+    {type:'recover', district:'Perambalur',backup:'Ariyalur', recMs:487, time: minusMin(4)},
+    {type:'borrow',  from:'Chennai',      to:'Kallakurichi',  res:'2 ambulances', time: minusMin(2)},
+  ];
+  ftEl.innerHTML = events.reverse().map(ev => {
+    if (ev.type==='fail') return `<div class="ft-ev"><div style="font-size:10px;font-weight:700;color:var(--red);margin-bottom:4px">⚡ ${ev.district} NODE FAILED — ${ev.time}</div><div style="font-size:9px;color:var(--text2)">▶ ${ev.backup} took over all requests | Recovery: ${ev.recMs}ms | Heartbeat timeout detected</div></div>`;
+    if (ev.type==='recover') return `<div class="ft-rec"><div style="font-size:10px;font-weight:700;color:var(--green);margin-bottom:3px">✅ ${ev.district} AUTO-RECOVERED — ${ev.time}</div><div style="font-size:9px;color:var(--text2)">Self-healing complete | Replica re-synced | Requests re-routed back | Recovery: ${ev.recMs}ms</div></div>`;
+    return `<div style="background:var(--purple2);border:1px solid rgba(167,139,250,0.2);border-radius:8px;padding:9px 11px;margin-bottom:7px"><div style="font-size:10px;font-weight:700;color:var(--purple);margin-bottom:3px">🔄 CROSS-REGION BORROW — ${ev.time}</div><div style="font-size:9px;color:var(--text2)">${ev.res}: <strong>${ev.from}</strong> → <strong>${ev.to}</strong> | Coordinator approved | Atomic transfer complete</div></div>`;
+  }).join('');
+
+  // Also seed audit log with historical entries
+  addLog('RECOVERY', `Node <strong>Salem</strong> auto-recovered after 312ms<div class="anode">Self-healing | Heartbeat restored | Replica synced</div>`);
+  addLog('BORROW',   `Cross-district: 2 ambulances <strong>Chennai → Kallakurichi</strong><div class="anode">Coordinator approved | LOW RES deficit resolved</div>`);
+  addLog('FAILOVER', `Node <strong>Perambalur</strong> FAILED → <strong>Ariyalur</strong> took over | Recovery: 487ms<div class="anode">Heartbeat timeout after 15s | Auto-failover triggered</div>`);
+  addLog('RECOVERY', `Node <strong>Salem</strong> detected as FAILED → <strong>Namakkal</strong> handling requests<div class="anode">Heartbeat missed × 3 | Requests reassigned</div>`);
+  addNotif('ngreen','✅','System online','38 districts active, all nodes ONLINE');
+  addNotif('npurple','🔄','Borrow event','2 ambulances: Chennai → Kallakurichi');
+
+  renderAudit && renderAudit();
+}, 300);
+
+function minusMin(m) {
+  const d = new Date(Date.now() - m*60000);
+  return String(d.getHours()).padStart(2,'0')+':'+String(d.getMinutes()).padStart(2,'0')+':'+String(d.getSeconds()).padStart(2,'0');
+}
+
+let emCount = 1;
+
+// ── EMERGENCY ─────────────────────────────────────────
+function captureLocation() {
+  getLocation(txt => {
+    document.getElementById('loc-bar').style.display='flex';
+    document.getElementById('loc-val').textContent=txt;
+    document.getElementById('rp-loc').textContent=txt;
+    addNotif('nblue','📍','GPS captured',txt);
+  });
+}
+
+function createEmergency() {
+  const id  = document.getElementById('eid').value || 'E-001';
+  const pri = document.getElementById('epri').value;
+  const typ = document.getElementById('etype').value;
+  const reg = document.getElementById('eregion').value;
+  STATE.totalE++; emCount++; STATE.priCounts[pri]++;
+  const res = smartAllocate(id, pri, typ, reg);
+  STATE.totalMs += res.ms;
+  if (res.ms < STATE.minMs) STATE.minMs = res.ms;
+  STATE.rtHistory.push(res.ms);
+  if (STATE.rtHistory.length > 15) STATE.rtHistory.shift();
+
+  if (res.ok) {
+    STATE.allocated++;
+    STATE.sucHistory.push(Math.round(STATE.allocated/STATE.totalE*100));
+    STATE.allocations = STATE.allocations || [];
+    STATE.allocations.unshift({id,pri,amb:res.ambulance.id,hosp:res.hospital.name,reg,ms:res.ms});
+    document.getElementById('em-result').style.display='';
+    document.getElementById('em-result').innerHTML=`<div class="ar-ok">
+      <div style="font-size:11px;font-weight:700;color:var(--green);margin-bottom:10px">✅ Smart Allocation Successful</div>
+      <div class="arow"><span class="ak">Emergency ID</span><span class="av">${id}</span></div>
+      <div class="arow"><span class="ak">Priority</span><span class="av"><span class="badge b${pri[0].toLowerCase()}">${pri}</span></span></div>
+      <div class="arow"><span class="ak">Ambulance</span><span class="av">${res.ambulance.id} — ${res.dkm}km away</span></div>
+      <div class="arow"><span class="ak">ETA</span><span class="av" style="color:var(--teal)">~${res.etaMin} mins</span></div>
+      <div class="arow"><span class="ak">Hospital</span><span class="av">${res.hospital.name}</span></div>
+      <div class="arow"><span class="ak">District</span><span class="av">${REGIONS[res.hospital.region]?.name}${res.xRegion?' ✦ Cross-district':''}</span></div>
+      <div class="arow"><span class="ak">Node</span><span class="av">${res.node}</span></div>
+      <div class="arow"><span class="ak">Response time</span><span class="av" style="color:var(--green)">${res.ms}ms</span></div>
+      <div style="margin-top:9px;font-size:9px;color:var(--text2);line-height:1.6"><strong style="color:var(--text)">Decision:</strong> ${res.reason}</div>
+    </div>`;
+    addLog('ALLOCATION',`<strong>${id}</strong> [${pri}] → ${res.ambulance.id} (${res.dkm}km) + ${res.hospital.name} — ${res.ms}ms<div class="anode">Node: ${res.node} | Smart scoring: distance+capacity+ICU</div>`);
+    addNotif('ngreen','🚑',`${id} allocated`,`→ ${res.hospital.name} | ${res.ms}ms`);
+    toast('ts',`${id} allocated`,`${res.ambulance.id} → ${res.hospital.name} | ETA ${res.etaMin}min`);
+    updateAISuggestion(res.ai, res.etaMin);
+    triggerSync(reg);
+    updateRegCard(reg); updateRegCard(res.hospital.region);
+    document.getElementById('eid').value='E-'+String(emCount).padStart(3,'0');
+  } else {
+    STATE.failed = (STATE.failed||0)+1;
+    document.getElementById('em-result').style.display='';
+    document.getElementById('em-result').innerHTML=`<div class="ar-er"><div style="color:var(--red);font-weight:700;margin-bottom:5px">❌ Allocation Failed</div><div style="font-size:10px;color:var(--text2)">${res.reason}</div></div>`;
+    addNotif('nred','⚠️','Allocation failed',res.reason.slice(0,50));
+    toast('te','Failed',res.reason);
+  }
+  updateDash(); try{ updateCharts(); }catch(e){}
+}
+
+// ── AI SUGGESTION ─────────────────────────────────────
+function updateAISuggestion(rankings, etaMin) {
+  if (!rankings || !rankings.length) return;
+  document.getElementById('ai-box').innerHTML = `
+    <div style="font-size:8px;color:var(--text3);font-family:var(--mono);margin-bottom:8px">SCORE = capacity(50%)+ICU(30%)+proximity</div>
+    ${rankings.map((h,i)=>`<div style="display:flex;justify-content:space-between;align-items:flex-start;padding:7px 0;border-bottom:1px solid var(--border)">
+      <div><div style="font-size:11px;font-weight:700">${i===0?'⭐ ':''}${h.name}</div>
+        <div style="font-size:9px;color:var(--text2)">${REGIONS[h.region]?.name} | Beds:${h.beds} ICU:${h.icu}</div>
+        <div style="font-size:9px;color:var(--teal)">ETA ~${etaMin+(i*3)} mins</div>
+      </div>
+      <div style="text-align:right"><div style="font-family:var(--mono);font-size:11px;color:${i===0?'var(--green)':'var(--text2)'}">${Math.round(Math.max(0,h.score))}</div>
+        ${i===0?'<div style="font-size:8px;color:var(--green)">Best pick</div>':''}
+      </div>
+    </div>`).join('')}`;
+  document.getElementById('rp-ai').innerHTML=rankings[0]?`<div style="font-size:10px;font-weight:700">${rankings[0].name}</div><div style="font-size:9px;color:var(--teal)">ETA ~${etaMin}min</div>`:'';}
+
+// ── FAULT TOLERANCE ───────────────────────────────────
+function doFail() {
+  const online=Object.values(REGIONS).filter(r=>r.status!=='FAILED');
+  if(!online.length){toast('tw','All failed','Recover first');return;}
+  const r=online[Math.floor(Math.random()*online.length)];
+  const old=r.status; r.status='FAILED'; STATE.failovers=(STATE.failovers||0)+1;
+  const backup=Object.values(REGIONS).find(x=>x.id!==r.id&&x.status!=='FAILED');
+  const bname=backup?backup.name:'NONE';
+  const recMs=Math.floor(Math.random()*900)+150;
+  STATE.recTimes.push(recMs);
+  document.getElementById('ft-ev-list').innerHTML=`<div class="ft-ev"><div style="font-size:10px;font-weight:700;color:var(--red);margin-bottom:4px">⚡ ${r.name} FAILED</div><div style="font-size:9px;color:var(--text2)">▶ ${bname} now handling requests | Recovery: ${recMs}ms</div></div>`+document.getElementById('ft-ev-list').innerHTML;
+  addLog('FAILOVER',`Node <strong>${r.name}</strong> FAILED → <strong>${bname}</strong> | Recovery: ${recMs}ms<div class="anode">Heartbeat timeout | Auto-failover | Self-healing</div>`);
+  addNotif('nred','⚡',r.name+' failed',bname+' handling requests');
+  toast('te',r.name+' FAILED',bname+' took over');
+  updateRegCard(r.id); updateDash(); updateCharts();
+  setTimeout(()=>{if(r.status==='FAILED'){r.status=old;document.getElementById('ft-ev-list').innerHTML=`<div class="ft-rec"><div style="font-size:10px;font-weight:700;color:var(--green);margin-bottom:3px">✅ ${r.name} Auto-Recovered</div><div style="font-size:9px;color:var(--text2)">Self-healing complete</div></div>`+document.getElementById('ft-ev-list').innerHTML;addLog('RECOVERY',`<strong>${r.name}</strong> recovered<div class="anode">Self-healing</div>`);addNotif('ngreen','✅',r.name+' recovered','Self-healing complete');toast('ts',r.name+' recovered','Auto self-healing');updateRegCard(r.id);updateDash();}},5000);
+}
+
+function doBorrow() {
+  const donors=[REGIONS.chennai,REGIONS.coimbatore,REGIONS.madurai].filter(r=>r.ambulances>3);
+  const recv=Object.values(REGIONS).find(r=>r.status==='LOW RES'&&r.ambulances<2);
+  if(!donors.length||!recv){toast('tw','Borrow not possible','');return;}
+  const donor=donors[0]; donor.ambulances--; recv.ambulances++; STATE.borrows=(STATE.borrows||0)+1;
+  document.getElementById('borrow-log').innerHTML=`<div style="background:var(--purple2);border:1px solid rgba(167,139,250,0.2);border-radius:7px;padding:8px 10px;font-size:10px"><div style="font-weight:700;color:var(--purple);margin-bottom:2px">🔄 Borrowed</div><div style="color:var(--text2)">1 ambulance: ${donor.name} → ${recv.name}</div><div style="font-size:8px;color:var(--text3);margin-top:2px">${nowT()}</div></div>`;
+  addLog('BORROW',`Cross-district: 1 ambulance <strong>${donor.name}</strong> → <strong>${recv.name}</strong><div class="anode">Atomic transfer | Raft lock</div>`);
+  addNotif('npurple','🔄','Resource borrowed',`${donor.name} → ${recv.name}`);
+  toast('tp','Resource borrowed',`${donor.name} → ${recv.name}`);
+  triggerSync(recv.id); updateRegCard(donor.id); updateRegCard(recv.id); updateDash();
+}
+
+function doRecover(){let n=0;Object.values(REGIONS).forEach(r=>{if(r.status==='FAILED'){r.status='ONLINE';n++;updateRegCard(r.id);}});AMBULANCES.forEach(a=>{if(a.status==='busy'&&Math.random()>0.7)a.status='free';});addLog('RECOVERY',`Full recovery — ${n} districts restored`);toast('ts','Recovery complete',n+' districts restored');updateDash();}
+
+function freeAllAmbu(){AMBULANCES.forEach(a=>{if(a.status==='busy'){a.status='free';REGIONS[a.region].ambulances=Math.min(REGIONS[a.region].ambulances+1,REGIONS[a.region].maxAmbu);}});renderResourcesTable();updateDash();toast('ts','All freed','');}
+
+// ── SIMULATION ────────────────────────────────────────
+function doSim(type, el) {
+  el.classList.add('run');
+  toast('ti','Simulation running…','Deep copy — live data safe');
+  setTimeout(()=>{ el.classList.remove('run');
+    runSimulation(type, r=>{
+      document.getElementById('sim-result').style.display='';
+      document.getElementById('sim-result').innerHTML=simResultHTML(r);
+      toast(r.pct>70?'ts':'tw','Simulation complete',`${r.alloc}/${r.alloc+r.fail} — ${r.pct}%`);
+    });
+  },1200);
+}
+
+// ── DASHBOARD UPDATE ──────────────────────────────────
+function updateDash() {
+  const rate=STATE.totalE>0?Math.round(STATE.allocated/STATE.totalE*100):100;
+  const avgMs=STATE.allocated>0?Math.round(STATE.totalMs/STATE.allocated):0;
+  const fn=Object.values(REGIONS).filter(r=>r.status==='FAILED').length;
+  const g=id=>document.getElementById(id);
+  g('sv-tot').textContent=STATE.totalE; g('ss-today').textContent='Today: '+STATE.totalE;
+  g('sv-rate').textContent=rate+'%'; g('ss-alloc').textContent='Allocated: '+STATE.allocated;
+  g('sv-rt').textContent=(avgMs||'—')+'ms';
+  g('sv-fn').textContent=fn; g('ss-an').textContent='Active: '+(38-fn)+'/38';
+  g('sv-borrow').textContent=STATE.borrows||0;
+  g('rp-rt').textContent=(STATE.allocations&&STATE.allocations[0]?.ms||'—')+'ms';
+  const maxP=Math.max(1,...Object.values(STATE.priCounts));
+  [['c','CRITICAL'],['h','HIGH'],['n','NORMAL']].forEach(([x,p])=>{const v=STATE.priCounts[p];g('pb-'+x).style.width=(v/maxP*100)+'%';g('pv-'+x).textContent=v;});
+  const totA=AMBULANCES.length,busyA=AMBULANCES.filter(a=>a.status==='busy').length;
+  const totB=HOSPITALS.reduce((s,h)=>s+h.maxBeds,0),usedB=HOSPITALS.reduce((s,h)=>s+(h.maxBeds-h.beds),0);
+  const totI=HOSPITALS.reduce((s,h)=>s+h.maxIcu,0),usedI=HOSPITALS.reduce((s,h)=>s+(h.maxIcu-h.icu),0);
+  const ap=Math.round(busyA/totA*100),bp=Math.round(usedB/totB*100),ip=Math.round(usedI/totI*100);
+  g('util-a').style.width=ap+'%';g('util-av').textContent=ap+'%';
+  g('util-b').style.width=bp+'%';g('util-bv').textContent=bp+'%';
+  g('util-i').style.width=ip+'%';g('util-iv').textContent=ip+'%';
+  g('an-tot').textContent=STATE.totalE;g('an-best').textContent=(STATE.minMs<Infinity?STATE.minMs+'ms':'—');g('an-suc').textContent=rate+'%';
+  const tb=g('alloc-tb');if(!tb)return;
+  tb.innerHTML=!STATE.allocations||!STATE.allocations.length?'<tr><td colspan="6" style="color:var(--text3);text-align:center;padding:14px">No allocations yet</td></tr>':STATE.allocations.slice(0,8).map(a=>`<tr><td style="font-family:var(--mono);font-size:9px">${a.id}</td><td><span class="badge b${a.pri[0].toLowerCase()}">${a.pri}</span></td><td style="font-size:9px">${a.amb}</td><td style="font-size:9px;color:var(--text2)">${a.hosp.slice(0,20)}</td><td style="font-size:9px;color:var(--text2)">${REGIONS[a.reg]?.name||a.reg}</td><td style="font-family:var(--mono);font-size:9px;color:var(--green)">${a.ms}ms</td></tr>`).join('');
+}
+
+// ── CANVAS CHARTS (no CDN, works offline) ────────────
+function drawBar(id, labels, values, color) {
+  const cv = document.getElementById(id);
+  if (!cv) return;
+  // Force a real width — use card width if canvas is hidden
+  const w = cv.parentElement?.parentElement?.clientWidth || cv.parentElement?.clientWidth || 500;
+  cv.width  = Math.max(w - 32, 200);
+  cv.height = 150;
+  const cx  = cv.getContext('2d');
+  const W = cv.width, H = cv.height;
+  const pad = {t:14, b:30, l:10, r:10};
+  const cw  = W - pad.l - pad.r;
+  const ch  = H - pad.t - pad.b;
+  const max = Math.max(...values, 1);
+  const bw  = Math.max(4, Math.floor(cw / Math.max(labels.length, 1)) - 5);
+
+  cx.clearRect(0, 0, W, H);
+
+  // Grid lines + y-axis values
+  cx.strokeStyle = 'rgba(99,179,237,0.07)'; cx.lineWidth = 1;
+  [0, 0.25, 0.5, 0.75, 1].forEach(f => {
+    const y = pad.t + ch * (1 - f);
+    cx.beginPath(); cx.moveTo(pad.l, y); cx.lineTo(W - pad.r, y); cx.stroke();
+    cx.fillStyle = '#2d3a50'; cx.font = '8px monospace'; cx.textAlign = 'right';
+    cx.fillText(Math.round(max * f), pad.l - 2, y + 3);
+  });
+
+  if (!labels.length) {
+    // Empty state message
+    cx.fillStyle = '#2d3a50'; cx.font = '11px Segoe UI';
+    cx.textAlign = 'center'; cx.textBaseline = 'middle';
+    cx.fillText('No data yet — create emergencies to see chart', W/2, H/2);
+    return;
+  }
+
+  labels.forEach((lbl, i) => {
+    const bh  = Math.max(1, (values[i] / max) * ch);
+    const bx  = pad.l + i * (cw / labels.length) + 2;
+    const by  = pad.t + ch - bh;
+
+    // Bar
+    cx.fillStyle = color + 'aa';
+    cx.beginPath();
+    if (cx.roundRect) cx.roundRect(bx, by, bw, bh, [3, 3, 0, 0]);
+    else { cx.moveTo(bx+3,by); cx.lineTo(bx+bw-3,by); cx.quadraticCurveTo(bx+bw,by,bx+bw,by+3); cx.lineTo(bx+bw,by+bh); cx.lineTo(bx,by+bh); cx.lineTo(bx,by+3); cx.quadraticCurveTo(bx,by,bx+3,by); cx.closePath(); }
+    cx.fill();
+
+    // Top highlight
+    cx.strokeStyle = color; cx.lineWidth = 1.5;
+    cx.beginPath(); cx.moveTo(bx, by); cx.lineTo(bx + bw, by); cx.stroke();
+
+    // Label below
+    cx.fillStyle = '#4a5568'; cx.font = '8px Segoe UI'; cx.textAlign = 'center'; cx.textBaseline = 'top';
+    cx.fillText(lbl.slice(0, 5), bx + bw / 2, H - pad.b + 4);
+
+    // Value on bar
+    if (bh > 16) {
+      cx.fillStyle = '#94a3b8'; cx.font = 'bold 8px monospace'; cx.textBaseline = 'top';
+      cx.fillText(values[i], bx + bw / 2, by + 3);
+    }
+  });
+}
+
+function initCharts() {} // kept for compatibility
+
+function drawAllAdminCharts() {
+  // District Utilisation — use status-based utilisation so LOW RES districts show high usage
+  const top10 = DISTRICTS.slice(0, 10);
+  drawBar('ch-reg', top10.map(d => d.name.slice(0,6)),
+    top10.map(d => {
+      const r = REGIONS[d.id];
+      if (!r) return 0;
+      if (r.status === 'LOW RES') return Math.floor(Math.random()*20)+75; // 75-95%
+      if (r.status === 'FAILED')  return 100;
+      return Math.floor(Math.random()*30)+10; // 10-40% normal
+    }), '#3b82f6');
+
+  // Response time — show demo data if no real data yet
+  const rtData   = STATE.rtHistory.length   ? STATE.rtHistory   : [120,95,210,88,145,310,76,190,105,230];
+  const rtLabels = STATE.rtHistory.length   ? STATE.rtHistory.map((_,i)=>'#'+(i+1)) : ['E1','E2','E3','E4','E5','E6','E7','E8','E9','E10'];
+  drawBar('ch-rt', rtLabels, rtData, '#10d9a0');
+
+  // Success rate — show demo data if no real data yet
+  const sucData   = STATE.sucHistory.length ? STATE.sucHistory   : [100,100,95,100,88,100,100,92,100,96];
+  const sucLabels = STATE.sucHistory.length ? STATE.sucHistory.map((_,i)=>'#'+(i+1)) : ['E1','E2','E3','E4','E5','E6','E7','E8','E9','E10'];
+  drawBar('ch-suc', sucLabels, sucData, '#3b82f6');
+
+  // Recovery times — show demo data if no real data yet
+  const recData   = STATE.recTimes.length   ? STATE.recTimes    : [320,185,540,290,410,155,620,380,245,480];
+  const recLabels = STATE.recTimes.length   ? STATE.recTimes.map((_,i)=>'F'+(i+1)) : ['F1','F2','F3','F4','F5','F6','F7','F8','F9','F10'];
+  drawBar('ch-rec', recLabels, recData, '#fbbf24');
+}
+
+function updateCharts() { drawAllAdminCharts(); }
+
+// Override showView to draw charts when Analytics tab opens
+const _origShowView = showView;
+showView = function(name) {
+  _origShowView(name);
+  if (name === 'an') setTimeout(drawAllAdminCharts, 50);
+  if (name === 'res') renderResources();
+};
+
+// ── RESOURCES ─────────────────────────────────────────
+function renderResources() { renderResourcesTable(); }
+
+// replication clock
+setInterval(() => {
+  const t = nowT();
+  ['rt1','rt2','rt3'].forEach(id => { const el=document.getElementById(id); if(el&&el.textContent!=='--:--') el.textContent=t; });
+}, 12000);
+
+</script>
+</body>
+</html>
