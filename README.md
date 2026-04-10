@@ -1,12 +1,15 @@
-<img width="1909" height="891" alt="image" src="https://github.com/user-attachments/assets/0999a7e8-b736-4a23-9ea4-f6d0f3dc21e1" />
-<img width="1913" height="900" alt="image" src="https://github.com/user-attachments/assets/0796d2be-5ae0-4bf3-93aa-15b68d9605d8" />
-<img width="1902" height="877" alt="image" src="https://github.com/user-attachments/assets/fa1500f2-661f-4818-9949-5907cf1f8053" />
-<img width="1916" height="893" alt="image" src="https://github.com/user-attachments/assets/5e9ec349-659d-4c03-9feb-c5e4b2667aab" />
-<img width="1912" height="891" alt="image" src="https://github.com/user-attachments/assets/dbd09db9-8ced-406f-a77f-d8df1da178fa" />
-<img width="1920" height="877" alt="Screenshot (4400)" src="https://github.com/user-attachments/assets/1c9e7f7c-fd66-468c-90b6-46aaca561dad" />
-<img width="1911" height="883" alt="image" src="https://github.com/user-attachments/assets/720baab2-50fe-4b78-9934-50c7d15000e7" />
-<img width="1912" height="888" alt="image" src="https://github.com/user-attachments/assets/cc0f40e9-bed3-4784-a28d-84d003e164c0" />
-<img width="1911" height="881" alt="image" src="https://github.com/user-attachments/assets/b2beddbe-0056-4901-9078-6131e9815365" />
+<img width="1916" height="884" alt="image" src="https://github.com/user-attachments/assets/a6434df8-aca7-4f12-a201-864123646878" />
+<img width="1915" height="885" alt="image" src="https://github.com/user-attachments/assets/797d8141-ada1-4ab3-bfd4-cb7f138a0756" />
+<img width="1910" height="883" alt="image" src="https://github.com/user-attachments/assets/7996193a-739d-4805-9a58-ffce6099270c" />
+<img width="1915" height="905" alt="image" src="https://github.com/user-attachments/assets/ce111449-56d3-4e65-b286-190ad5af102c" />
+<img width="1913" height="886" alt="image" src="https://github.com/user-attachments/assets/bb584f3b-a314-4e8e-a3fc-81dac35dad80" />
+<img width="1919" height="891" alt="image" src="https://github.com/user-attachments/assets/2f01ac74-c579-40b9-9874-1c9853aef2c0" />
+<img width="1918" height="900" alt="image" src="https://github.com/user-attachments/assets/d3b08e96-0950-4c2c-becf-4ee3d9e3d436" />
+<img width="1913" height="896" alt="image" src="https://github.com/user-attachments/assets/d20dd39d-d4cb-4005-a126-f8418ca1d5b1" />
+<img width="1917" height="883" alt="image" src="https://github.com/user-attachments/assets/42c97c44-4957-4d9a-b8f2-fcd4811d0b3d" />
+<img width="1918" height="892" alt="image" src="https://github.com/user-attachments/assets/558e2980-c007-445c-951c-aea848db9909" />
+<img width="1913" height="886" alt="image" src="https://github.com/user-attachments/assets/fc3b7976-074c-4357-8679-1557e71d37d0" />
+<img width="1913" height="894" alt="image" src="https://github.com/user-attachments/assets/cd2ded8a-9fec-4361-a878-860c3d37f30b" />
 
 # 🚑 Distributed Emergency Resource Allocation System
 ## ERAS v4.0 — Tamil Nadu | 38 Districts
